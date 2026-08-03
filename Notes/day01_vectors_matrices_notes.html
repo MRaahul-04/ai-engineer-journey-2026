@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 1 Notes — Vectors & Matrices</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: #4a6b3a;
+    margin-bottom: 25px;
+  }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 22px;
+  }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .arrow-diagram {
+    text-align: center;
+    font-size: 20px;
+    margin: 10px 0;
+  }
+  .highlight {
+    background: #fce27a;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  td, th {
+    border: 1.5px dashed #a08a5e;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 17px;
+  }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note {
+    margin-top: 20px;
+    font-size: 15px;
+    color: #6a6a6a;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 1 — Vectors &amp; Matrices</h1>
+  <div class="subtitle">Week 1 · Day 1 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>Why does ML even need this?</h2>
+  <div class="box">
+    Machines don't understand "house" or "cat" — they only understand
+    <span class="highlight">numbers arranged in structure</span>.
+    So step 1 of ML is always: <b>turn everything into numbers.</b>
+    <br><br>
+    Image → pixel values &nbsp;|&nbsp; Sentence → embedding numbers &nbsp;|&nbsp; House → feature numbers
+  </div>
+
+  <h2>Vector — Angle 1: a list</h2>
+  <div class="box green">
+    <span class="label green">One house =</span><br>
+    <code>[1200, 3, 5, 85]</code> → size, bedrooms, age, price
+    <br><br>
+    Order matters. Position 1 is <i>always</i> size, position 2 <i>always</i> bedrooms.
+  </div>
+
+  <h2>Vector — Angle 2: an arrow</h2>
+  <div class="box orange">
+    <span class="label orange">[3, 2] means:</span> start at origin,
+    walk <span class="highlight">3 right</span>, <span class="highlight">2 up</span>, draw the arrow.
+    <div class="arrow-diagram">(0,0) ────────► has <u>direction</u> + <u>length (magnitude)</u></div>
+    Length = √(3² + 2²) ≈ 3.6 &nbsp; (Pythagoras!)
+    <br><br>
+    <b>Same numbers, two lenses:</b> data-row AND geometric-arrow — both true at once.
+  </div>
+
+  <h2>Matrix — many vectors, stacked</h2>
+  <div class="box purple">
+    <span class="label purple">Matrix =</span> stack of vectors, one row each.
+    <pre>houses = [[1200, 3, 5, 85],
+          [800,  2, 10, 55],
+          [2000, 4, 2, 140],
+          [950,  2, 8, 62]]</pre>
+    Shape <code>(4, 4)</code> → 4 houses (rows) × 4 features (columns)
+    <br><br>
+    Geometrically: <span class="underline">each row is its own arrow</span> — a matrix lets you operate
+    on ALL those arrows in one shot.
+  </div>
+
+  <h2>NumPy indexing — the golden pattern</h2>
+  <div class="box">
+    <code>array[rows, columns]</code>
+    <ul>
+      <li><code>houses[0]</code> → row 0 <b>as a vector</b> → shape <code>(4,)</code></li>
+      <li><code>houses[0:1]</code> → row 0 <b>as a matrix slice</b> → shape <code>(1,4)</code></li>
+      <li><code>houses[:, 3]</code> → column 3 <span class="highlight">for every row</span> (all prices)</li>
+      <li><code>houses[1, 2]</code> → single value at row 1, col 2</li>
+    </ul>
+  </div>
+
+  <h2>Integer index vs. slice — the "why"</h2>
+  <div class="box pink">
+    <span class="label pink">Integer index</span> → "hand me the book itself" → dimension <b>dropped</b><br>
+    <span class="label pink">Slice</span> → "hand me the shelf-section" → dimension <b>kept</b>, even if size 1
+    <br><br>
+    This is <span class="highlight">why</span> ML models expecting batch shape <code>(1, n)</code>
+    break if you accidentally hand them shape <code>(n,)</code>.
+  </div>
+
+  <h2>Broadcasting gotcha</h2>
+  <div class="box orange">
+    <code>houses[0] == houses[0:1]</code> does <b>NOT</b> give one <code>True</code>.<br>
+    It compares element-by-element → <code>[[True True True True]]</code>
+    <br><br>
+    Want one final answer? Use <code>.all()</code> →
+    <code>(houses[0] == houses[0:1]).all()</code> → <code>True</code>
+  </div>
+
+  <h2>Vectorization — the whole point</h2>
+  <div class="box green">
+    <span class="label green">Slow (loop):</span> processes one house at a time — Python interpreter
+    overhead paid on <i>every</i> single row.
+    <br><br>
+    <span class="label green">Fast (vectorized):</span>
+    <code>houses[:, 3] / houses[:, 0]</code> → whole operation pushed into
+    compiled C code, all rows at once. <b>10–100x faster</b>, and this is
+    the exact pattern every ML training step reuses.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Vector</td><td>one thing, described by numbers (or one arrow)</td></tr>
+      <tr><td>Matrix</td><td>many vectors, stacked into rows</td></tr>
+      <tr><td>Shape (n,)</td><td>1-D vector, n elements</td></tr>
+      <tr><td>Shape (r, c)</td><td>2-D matrix, r rows × c columns</td></tr>
+      <tr><td>array[i]</td><td>integer index — drops a dimension</td></tr>
+      <tr><td>array[i:i+1]</td><td>slice — keeps the dimension</td></tr>
+      <tr><td>array[:, j]</td><td>whole column j, every row</td></tr>
+      <tr><td>Broadcasting</td><td>elementwise op even across mismatched shapes</td></tr>
+      <tr><td>.all()</td><td>collapse boolean array → single True/False</td></tr>
+      <tr><td>Vectorization</td><td>whole-array op in compiled code, no Python loop</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 1 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-01 / day-01 · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
