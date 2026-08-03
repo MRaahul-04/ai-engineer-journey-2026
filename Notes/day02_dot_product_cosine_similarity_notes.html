@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 2 Notes — Dot Product, Norm & Cosine Similarity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: #4a6b3a;
+    margin-bottom: 25px;
+  }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 22px;
+  }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .arrow-diagram {
+    text-align: center;
+    font-size: 20px;
+    margin: 10px 0;
+  }
+  .highlight {
+    background: #fce27a;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  td, th {
+    border: 1.5px dashed #a08a5e;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 17px;
+  }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note {
+    margin-top: 20px;
+    font-size: 15px;
+    color: #6a6a6a;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 2 — Dot Product, Norm &amp; Cosine Similarity</h1>
+  <div class="subtitle">Week 1 · Day 2 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The problem we're solving</h2>
+  <div class="box">
+    Computer only sees numbers. How do we make it know
+    <span class="highlight">"these two things are similar"</span> using just numbers?
+    <br><br>
+    Example — 3 users rating Action / Comedy / Romance (0–10):
+    <pre>A = [9, 2, 1]   loves action
+B = [8, 3, 2]   loves action
+C = [1, 2, 9]   loves romance</pre>
+    Obvious to us: A and B are similar. We need the computer to figure that out too.
+  </div>
+
+  <h2>Dot Product — multiply matching spots, then add</h2>
+  <div class="box green">
+    <span class="label green">Rule:</span> multiply the numbers in the same position, add everything up.
+    <pre>A · B = (9×8) + (2×3) + (1×2) = 72 + 6 + 2 = 80
+A · C = (9×1) + (2×2) + (1×9) = 9 + 4 + 9 = 22</pre>
+    80 is much bigger than 22 → A and B agree more than A and C. It works!
+    <br><br>
+    <b>Why it works:</b> if both vectors are big in the <u>same spot</u>, that spot's product is huge and
+    takes over the total. If big numbers don't line up, nothing dominates, total stays small.
+  </div>
+
+  <h2>The problem with plain Dot Product</h2>
+  <div class="box orange">
+    <span class="label orange">Trap:</span> a "louder" version of the same taste breaks it.
+    <pre>D = [90, 20, 10]   same taste as A, just rated 10x bigger
+
+A · D = (9×90)+(2×20)+(1×10) = 810+40+10 = 860</pre>
+    860 looks "more similar" than A·B (80) — but D is the SAME taste, just louder numbers.
+    Dot product got confused by <span class="highlight">size</span>, not actual taste. Needs a fix.
+  </div>
+
+  <h2>Norm — how "big" is a vector, by itself</h2>
+  <div class="box purple">
+    <span class="label purple">Same Pythagoras idea from Day 1</span>, just for any amount of numbers:
+    square each number → add them up → square root the total.
+    <pre>||A|| = √(9² + 2² + 1²) = √(81+4+1) = √86 ≈ 9.27</pre>
+    This measures pure "bigness" (magnitude), nothing about direction/taste.
+  </div>
+
+  <h2>Cosine Similarity — the real fix</h2>
+  <div class="box pink">
+    <span class="label pink">Formula:</span> take the dot product, divide out the "bigness" of both vectors.
+    <pre>cosine_sim(A, B) = (A · B) / (||A|| × ||B||)
+
+cos_sim(A,B) = 80 / (9.27 × 8.78)  ≈ 0.98   (almost same taste)
+cos_sim(A,D) = 860/(9.27 × 92.7)   ≈ 1.00   (identical taste, just louder)
+cos_sim(A,C) = 22 / (9.27 × 9.27)  ≈ 0.26   (barely related taste)</pre>
+    Always between <b>-1</b> and <b>+1</b>. Size no longer matters — only direction (taste) does.
+  </div>
+
+  <h2>What the number means (no jargon)</h2>
+  <div class="box">
+    Think of two arrows on paper starting from the same point:
+    <ul>
+      <li><b>+1</b> → arrows point the same way → tastes match perfectly</li>
+      <li><b>0</b> → arrows point in totally unrelated directions → knowing one tells you nothing about the other</li>
+      <li><b>-1</b> → arrows point opposite ways → exact opposite tastes</li>
+    </ul>
+    The technical name for this is the "angle between two vectors" — but the arrow picture is all you need.
+  </div>
+
+  <h2>Building it from scratch (Python, no NumPy)</h2>
+  <div class="box green">
+<pre>def dot_product_scratch(v1, v2):
+    total = 0
+    for i in range(len(v1)):
+        total += v1[i] * v2[i]     # multiply + add together
+    return total
+
+def norm_scratch(v):
+    total = 0
+    for i in range(len(v)):
+        total += v[i]**2           # square each number
+    return math.sqrt(total)        # then square root the sum
+
+def cosine_similarity_scratch(v1, v2):
+    return dot_product_scratch(v1, v2) / (norm_scratch(v1) * norm_scratch(v2))</pre>
+    Common bug to remember: compute-then-throw-away. Always write
+    <code>total += v1[i] * v2[i]</code> in ONE line — don't multiply on one line
+    and add something else on the next.
+  </div>
+
+  <h2>NumPy version — same math, 2 lines</h2>
+  <div class="box orange">
+<pre>dot = np.dot(user_A, user_B)
+norm_A = np.linalg.norm(user_A)
+norm_B = np.linalg.norm(user_B)
+cosine_sim = dot / (norm_A * norm_B)</pre>
+    Same answer as the scratch version. NumPy runs the loop inside fast compiled C code
+    instead of slow Python — matters hugely once you have millions of comparisons.
+  </div>
+
+  <h2>Matrix vs Vector — compare one user to everyone at once</h2>
+  <div class="box purple">
+<pre>users = [[9,2,1], [8,3,2], [1,2,9], [90,20,10]]   # shape (4,3)
+
+np.dot(users, user_A)   →  [86, 80, 22, 860]</pre>
+    One line replaces 4 separate dot products. Each row of the matrix gets
+    dot-producted against the vector automatically.
+  </div>
+
+  <h2>Matrix vs Matrix — everyone compared to everyone</h2>
+  <div class="box pink">
+<pre>similarity = np.dot(users, users.T)     # .T flips rows into columns</pre>
+    Result is a grid: row i, column j = dot product of user i and user j.
+    <ul>
+      <li>Grid is symmetric → row0-col1 always equals row1-col0</li>
+      <li>Diagonal = each user dot-producted with themselves = biggest number in its row</li>
+      <li>This exact trick (matrix times its own transpose) is the core computation
+      inside Transformer attention</li>
+    </ul>
+  </div>
+
+  <h2>Turning the raw grid into real Cosine Similarity</h2>
+  <div class="box">
+<pre>norms = np.linalg.norm(matrix, axis=1)     # norm of every row, in one line
+norm_matrix = np.outer(norms, norms)       # entry [i,j] = norms[i] × norms[j]
+cosine_matrix = similarity / norm_matrix   # divide grid by grid, position by position</pre>
+    <code>np.outer(a, b)</code> → builds every pairwise multiplication into a grid,
+    so it lines up perfectly with the similarity grid for one clean division.
+    Diagonal of the final cosine grid is always exactly <b>1.0</b> (self vs self = perfect match).
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Dot product</td><td>multiply matching positions, add up → raw "agreement" score</td></tr>
+      <tr><td>Norm (||v||)</td><td>square each number, sum, square-root → "how big" a vector is</td></tr>
+      <tr><td>Cosine similarity</td><td>dot product ÷ (norm × norm) → pure direction match, -1 to +1</td></tr>
+      <tr><td>+1</td><td>same direction / identical taste</td></tr>
+      <tr><td>0</td><td>unrelated / perpendicular</td></tr>
+      <tr><td>-1</td><td>opposite direction / opposite taste</td></tr>
+      <tr><td>np.dot(v1, v2)</td><td>fast dot product, no loop</td></tr>
+      <tr><td>np.linalg.norm(v)</td><td>fast norm, no loop</td></tr>
+      <tr><td>np.dot(matrix, vector)</td><td>compare one vector to every row at once</td></tr>
+      <tr><td>np.dot(matrix, matrix.T)</td><td>compare every row to every other row → similarity grid</td></tr>
+      <tr><td>np.outer(a, b)</td><td>every pairwise product of two lists → grid</td></tr>
+      <tr><td>Diagonal of self-similarity grid</td><td>always the biggest value in its row (self = perfect match)</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 2 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-01 / day-02 · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
