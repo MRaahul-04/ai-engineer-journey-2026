@@ -113,3 +113,49 @@ output = relu(z)     # activation step
 
 print("\n z (pre-activation):", z)
 print("output (post-ReLU):", output)
+
+
+# Homework_1
+print("\n Homework_1")
+def matmul_hw(A, B):
+    rowsA = len(A)
+    colsA = len(A[0])
+    colsB = len(B[0])
+
+    C = []
+    for i in range(rowsA):
+        row_result = []
+        for j in range(colsB):
+            total = 0
+            for k in range(colsA):
+                total += A[i][k] * B[k][j]
+
+            row_result.append(total)
+        C.append(row_result)
+    return C
+
+A = [[1,2,3],[4,5,6]]
+B = [[7,8],[9,10],[11,12]]
+
+print(matmul_hw(A, B))
+print(np.array(A) @ np.array(B))
+
+# Homework_2
+print("\n Homework_2")
+A = [[4,7,2],[6,3,9],[8,3,6]]
+B = [[4,7,9],[2,13,11],[14,16,9]]
+
+print(matmul_hw(A, B))
+print(np.array(A) @ np.array(B))
+
+# Homework_3
+print("\n Homework_3")
+# write relu(x) so it works on a whole list or array at once, not just one number.
+z = np.array([[3, -2, 5],
+              [-1, 4, -6]])
+
+def relu(x):
+    return np.maximum(0, x)
+
+print(relu(z))
+
