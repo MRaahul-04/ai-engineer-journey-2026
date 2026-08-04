@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 3 Notes — Matrix Multiplication & Neural Network Layers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: #4a6b3a;
+    margin-bottom: 25px;
+  }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 22px;
+  }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .arrow-diagram {
+    text-align: center;
+    font-size: 20px;
+    margin: 10px 0;
+  }
+  .highlight {
+    background: #fce27a;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  td, th {
+    border: 1.5px dashed #a08a5e;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 17px;
+  }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note {
+    margin-top: 20px;
+    font-size: 15px;
+    color: #6a6a6a;
+    font-style: italic;
+  }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 3 — Matrix Multiplication &amp; NN Layers</h1>
+  <div class="subtitle">Week 1 · Day 3 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Matrix multiplication is <span class="highlight">Day 2's dot product, repeated</span> —
+    once for every (row of A, column of B) pair. Nothing new is being invented here,
+    just an old operation looped over a grid.
+  </div>
+
+  <h2>The shape rule</h2>
+  <div class="box green">
+    <span class="label green">Rule:</span> <code>A @ B</code> only works if
+    <code>cols_A == rows_B</code>. The matching middle number "cancels out."
+    <pre>(rows_A, cols_A) @ (rows_B, cols_B) → (rows_A, cols_B)</pre>
+    Example: <code>(2,3) @ (3,2) → (2,2)</code>. The 3s must agree; only the
+    outer 2 and 2 survive into the result's shape.
+  </div>
+
+  <h2>Row meets column — worked example</h2>
+  <div class="box orange">
+<pre>A = [[1,2,3],      B = [[7, 8],
+     [4,5,6]]           [9, 10],
+                        [11,12]]
+
+C[0][0] = row0(A)·col0(B) = 1×7 + 2×9  + 3×11 = 58
+C[0][1] = row0(A)·col1(B) = 1×8 + 2×10 + 3×12 = 64
+C[1][0] = row1(A)·col0(B) = 4×7 + 5×9  + 6×11 = 139
+C[1][1] = row1(A)·col1(B) = 4×8 + 5×10 + 6×12 = 154
+
+C = [[58, 64],
+     [139,154]]</pre>
+    Every output cell = one dot product between a specific row and a specific column.
+    Nothing more mysterious than that.
+  </div>
+
+  <h2>Matmul from scratch — 3 nested loops</h2>
+  <div class="box purple">
+    <span class="label purple">Structure:</span> outer loop = row of A, middle loop = column of B,
+    inner loop = walk-multiply-accumulate (this inner loop <i>is</i> <code>dot_product_scratch</code>
+    from Day 2).
+    <pre>def matmul_scratch(A, B):
+    rows_A = len(A)
+    cols_A = len(A[0])
+    cols_B = len(B[0])
+
+    C = []
+    for i in range(rows_A):        # pick a row of A
+        row_result = []
+        for j in range(cols_B):    # pick a column of B
+            total = 0                # fresh zero per (i, j) pair
+            for k in range(cols_A):
+                total += A[i][k] * B[k][j]
+            row_result.append(total)  # save finished number
+        C.append(row_result)
+    return C</pre>
+  </div>
+
+  <h2>Bugs I actually hit — keep these in mind</h2>
+  <div class="bug">
+    <b>1. Wrong start value:</b> <code>row_result = []</code> is a list, not a running total.
+    <code>total</code> must start at <code>0</code> (a number) — one fresh <code>total</code>
+    per (i, j) pair, reset every time <code>j</code> changes.
+  </div>
+  <div class="bug">
+    <b>2. Forgetting to save the finished number:</b> once the <code>k</code> loop ends,
+    <code>total</code> holds one finished value — it must be explicitly
+    <code>row_result.append(total)</code>'d, or it's silently thrown away.
+  </div>
+  <div class="bug">
+    <b>3. Case-sensitive variable mismatch:</b> <code>c = []</code> vs <code>C.append(...)</code>
+    → Python sees these as two different variables → <code>NameError</code>.
+  </div>
+  <div class="bug">
+    <b>4. <code>@</code> needs NumPy arrays, not lists:</b>
+    <code>x @ W</code> crashes with <code>TypeError</code> if <code>x</code> and <code>W</code>
+    are plain Python lists. Must be <code>np.array(x) @ np.array(W)</code>.
+  </div>
+
+  <h2>NumPy version — one symbol</h2>
+  <div class="box green">
+<pre>import numpy as np
+C = np.array(A) @ np.array(B)</pre>
+    Same rule (<code>cols_A == rows_B</code>), same result, zero loops.
+    This exact <code>@</code> is the operation running inside every layer of every
+    neural network, millions of times per second.
+  </div>
+
+  <h2><code>@</code> vs dot product vs cosine similarity</h2>
+  <div class="box pink">
+    <span class="label pink">On two 1-D vectors,</span> <code>A @ B</code> and
+    <code>np.dot(A, B)</code> give the <u>identical</u> number — vector dot product
+    is just the 1-D special case of matmul.
+    <br><br>
+    <span class="label pink">But <code>@</code> stops there.</span> It only ever
+    multiplies-and-sums. It has no idea of "square root" or "divide," so:
+    <ul>
+      <li>Norm still needs <code>np.linalg.norm(v)</code> — a separate function</li>
+      <li>Cosine similarity still needs the manual division step afterward:
+      <code>(A @ B) / (norm_A * norm_B)</code></li>
+    </ul>
+    <code>@</code> replaces the dot-product step only — never the full formula.
+  </div>
+
+  <h2>A neural network layer — the whole thing</h2>
+  <div class="box orange">
+    <span class="label orange">Formula:</span>
+    <pre>output = ReLU((x @ W) + b)</pre>
+    <code>x</code> = input row &nbsp;|&nbsp; <code>W</code> = learned weights matrix
+    &nbsp;|&nbsp; <code>b</code> = bias &nbsp;|&nbsp; <code>ReLU</code> = activation
+    <br><br>
+    <b>Worked by hand:</b>
+    <pre>x = [2, 3],  W shape (2,3),  b = [1, 1, 0]
+
+x @ W = [2, 3, 7]
++ b    = [3, 4, 7]
+ReLU   = [3, 4, 7]   (nothing negative, nothing clipped)</pre>
+    Stack this same formula layer after layer — that IS a deep neural network.
+    No extra magic at scale, just this, repeated.
+  </div>
+
+  <h2>ReLU — why it matters, not just what it does</h2>
+  <div class="box purple">
+    <span class="label purple">Rule:</span> <code>max(0, x)</code> — negative becomes 0,
+    positive passes through untouched. Not "smart," just always keeps the bigger of two numbers.
+    <pre>b = [1, -5, -2]  →  x@W + b = [3, -2, 5]  →  ReLU → [3, 0, 5]</pre>
+    <b>Why it exists:</b> without ReLU (or any activation), stacking 100 linear layers
+    mathematically collapses into just <u>one</u> linear layer. ReLU's clipping is what
+    makes each layer capable of learning something genuinely different — it's the
+    source of a network's ability to learn curves and complex boundaries, not straight lines.
+    <br><br>
+    <b>Vectorized version</b> (whole array at once, no loop):
+    <code>np.maximum(0, z)</code> — this is NumPy's array-aware big brother of
+    Python's single-number <code>max(0, x)</code>.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Matmul rule</td><td>cols_A must equal rows_B; output shape = (rows_A, cols_B)</td></tr>
+      <tr><td>One output cell</td><td>= dot product of one row (A) and one column (B)</td></tr>
+      <tr><td>matmul_scratch</td><td>3 nested loops: row → column → position-accumulate</td></tr>
+      <tr><td>np.array(A) @ np.array(B)</td><td>matmul, zero loops, compiled speed</td></tr>
+      <tr><td>@ on two 1-D vectors</td><td>identical to np.dot — same number</td></tr>
+      <tr><td>@ can't do</td><td>norm (needs sqrt) or cosine similarity's final division</td></tr>
+      <tr><td>x @ list crash</td><td>@ needs np.array inputs, not plain Python lists</td></tr>
+      <tr><td>NN layer formula</td><td>output = ReLU((x @ W) + b)</td></tr>
+      <tr><td>ReLU</td><td>max(0, x) — clip negatives to 0, keep positives as-is</td></tr>
+      <tr><td>np.maximum(0, z)</td><td>vectorized ReLU — whole array, no loop</td></tr>
+      <tr><td>Why ReLU exists</td><td>without it, stacked linear layers collapse into one linear layer</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 3 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-01 / day-03 · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
