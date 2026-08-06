@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 4 Notes — Transpose, Identity & Inverse Matrices</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: #4a6b3a;
+    margin-bottom: 25px;
+  }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 22px;
+  }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .arrow-diagram {
+    text-align: center;
+    font-size: 20px;
+    margin: 10px 0;
+  }
+  .highlight {
+    background: #fce27a;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  td, th {
+    border: 1.5px dashed #a08a5e;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 17px;
+  }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note {
+    margin-top: 20px;
+    font-size: 15px;
+    color: #6a6a6a;
+    font-style: italic;
+  }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 4 — Transpose, Identity &amp; Inverse Matrices</h1>
+  <div class="subtitle">Week 1 · Day 4 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Everything so far <span class="highlight">combines</span> things (dot product, matmul).
+    Today is about <b>undoing</b> — genuinely new power. This is the seed of how
+    Linear Regression gets solved by hand, no training loop needed.
+  </div>
+
+  <h2>Transpose — flip the table sideways</h2>
+  <div class="box green">
+    <span class="label green">Before:</span> each row = one house (size, bedrooms, age)
+    <pre>houses = [[1200, 3, 5],
+          [800,  2, 10],
+          [2000, 4, 2],
+          [950,  2, 8]]     shape (4, 3)</pre>
+    <span class="label green">After .T:</span> each row = one feature, across ALL houses
+    <pre>houses.T = [[1200, 800, 2000, 950],   size for every house
+            [3,    2,   4,    2  ],   bedrooms for every house
+            [5,    10,  2,    8  ]]   age for every house
+                                       shape (3, 4)</pre>
+    <b>Shape rule:</b> <code>(r, c) → (c, r)</code>. The numbers don't move randomly —
+    the <span class="underline">grouping principle</span> flips: "rows = things" becomes "rows = descriptions."
+  </div>
+
+  <h2>Why transpose matters — shape compatibility</h2>
+  <div class="box orange">
+    Matmul needs <code>cols_A == rows_B</code>. For <code>X</code> shape <code>(4,3)</code>,
+    plain <code>X @ X</code> <b>crashes</b> — 3 ≠ 4.
+    <pre>X @ X.T  → (4,3)@(3,4) → (4,4)   houses compared to houses
+X.T @ X  → (3,4)@(4,3) → (3,3)   features compared to features</pre>
+    Same two matrices, same <code>@</code> — but which one you transpose completely
+    changes the question being asked. <code>X.T @ X</code> is the literal first step
+    in solving linear regression by hand.
+  </div>
+
+  <h2>Identity matrix — the "do nothing" matrix</h2>
+  <div class="box purple">
+    <span class="label purple">Regular numbers:</span> <code>7 × 1 = 7</code> — <code>1</code> does nothing.
+    <br><br>
+    <span class="label purple">Matrix version:</span>
+    <pre>I = [[1, 0],
+     [0, 1]]      → np.eye(2)</pre>
+    1s on the diagonal, 0s everywhere else. <b>Any matrix times <code>I</code> comes back untouched</b>:
+    <code>A @ I = A</code>, always (shapes permitting). Every 0 kills off everything except
+    the matching diagonal entry — output just copies straight through.
+  </div>
+
+  <h2>Inverse matrix — the "undo" button</h2>
+  <div class="box pink">
+    <span class="label pink">Regular numbers:</span> to solve <code>5x = 20</code>, multiply both
+    sides by <code>1/5</code> — the number that undoes 5, because <code>5 × (1/5) = 1</code>.
+    <br><br>
+    <span class="label pink">Matrix version:</span> <code>A⁻¹</code> is defined purely by what it does:
+    <pre>A × A⁻¹ = I</pre>
+    If <code>A @ x = b</code>, left-multiply both sides by <code>A⁻¹</code>:
+    <pre>A⁻¹ @ A @ x = A⁻¹ @ b
+       I @ x = A⁻¹ @ b
+           x = A⁻¹ @ b</pre>
+  </div>
+
+  <h2>Order matters — matrices are NOT commutative</h2>
+  <div class="bug">
+    <b>Regular numbers:</b> <code>5 × 3 = 3 × 5</code>, always. <b>Matrices: NOT true.</b>
+    <code>A @ B ≠ B @ A</code> in general.
+    <br><br>
+    To cancel <code>A</code> in <code>A @ x = b</code>, <code>A⁻¹</code> must attack from
+    the <b>same side</b> — left cancels left. Trying <code>x @ A⁻¹</code> never touches
+    <code>A</code> directly; nothing collapses to <code>I</code>. Also usually a straight
+    shape mismatch.
+  </div>
+
+  <h2>Determinant — the gatekeeper</h2>
+  <div class="box green">
+    For a 2×2 matrix <code>[[a,b],[c,d]]</code>:
+    <pre>det(A) = a·d − b·c
+(diagonal product) − (off-diagonal product)</pre>
+    Example: <code>A = [[4,7],[2,6]]</code> → <code>(4×6) − (7×2) = 24 − 14 = 10</code>
+    <br><br>
+    <span class="highlight">If det(A) = 0 → NO inverse exists at all.</span>
+    Same as <code>1/0</code> — undefined, not "hard to find." Called a
+    <b>singular matrix</b> — rows/columns hold redundant info, some data got
+    "squished" away and can't be recovered.
+  </div>
+
+  <h2>Building the inverse — 2×2 recipe</h2>
+  <div class="box orange">
+    <span class="label orange">3 steps:</span> swap the diagonal → flip sign on the other two → divide everything by det(A).
+    <pre>A = [[4, 7],      det(A) = 10
+     [2, 6]]
+
+Step 1 (swap diagonal):   [[6, 7], [2, 4]]
+Step 2 (flip sign):       [[6, -7], [-2, 4]]
+Step 3 (divide by 10):    [[0.6, -0.7], [-0.2, 0.4]]
+
+A⁻¹ = [[0.6, -0.7],
+       [-0.2, 0.4]]</pre>
+    <b>Proof it works</b> — top-left cell of <code>A @ A⁻¹</code> should be 1:
+    <pre>row0(A)·col0(A⁻¹) = (4×0.6)+(7×-0.2) = 2.4 − 1.4 = 1.0  ✓</pre>
+  </div>
+
+  <h2>Floating-point dust — totally normal</h2>
+  <div class="bug">
+    Computer math often gives <code>0.9999999999999998</code> instead of a clean
+    <code>1.0</code> — decimals like 0.6 can't be stored perfectly in binary, so tiny
+    rounding dust creeps in. <b>Not a bug, not your mistake.</b>
+    <br><br>
+    <b>Rule:</b> never compare floats with <code>==</code>. Use <code>np.isclose(a, b)</code>.
+    Clean up display with:
+    <pre>np.set_printoptions(precision=4, suppress=True)</pre>
+    <code>suppress=True</code> stops scientific notation (e.g. <code>1.2e-16</code>)
+    for near-zero rounding dust — shows it as <code>0.</code> instead.
+  </div>
+
+  <h2>Square-only rule</h2>
+  <div class="box purple">
+    Inverse only exists for <b>square</b> matrices (rows = columns) — because
+    <code>I</code> is always square, and <code>A @ A⁻¹ = I</code> can never balance otherwise.
+    <ul>
+      <li><code>(2,2)</code>, <code>(3,3)</code>, <code>(50,50)</code> → can have an inverse (if det ≠ 0)</li>
+      <li><code>(4,3)</code>, <code>(2,5)</code> → wrong shape entirely, no true inverse — full stop</li>
+    </ul>
+    For non-square (more rows than columns, like real datasets), the real tool is the
+    <b>pseudo-inverse</b> — the seed of how real Linear Regression gets solved. Name to
+    remember, not built by hand yet.
+  </div>
+
+  <h2>Solving a real system — tying it all together</h2>
+  <div class="box pink">
+    <pre>4x + 7y = 40
+2x + 6y = 26</pre>
+    This is exactly <code>A @ [x,y] = b</code>, with our same <code>A</code> and <code>b = [40,26]</code>.
+    <pre>[x,y] = A⁻¹ @ b
+
+x: (0.6×40) + (-0.7×26) = 24 − 18.2 = 5.8
+y: (-0.2×40) + (0.4×26) = -8 + 10.4 = 2.4</pre>
+    <b>Sanity check against original equations:</b>
+    <pre>4(5.8) + 7(2.4) = 23.2 + 16.8 = 40  ✓
+2(5.8) + 6(2.4) = 11.6 + 14.4 = 26  ✓</pre>
+    No guessing, no trial and error — the inverse solved it directly.
+  </div>
+
+  <h2>NumPy — the real tools</h2>
+  <div class="box green">
+<pre>np.linalg.det(A)      # determinant
+np.linalg.inv(A)      # inverse
+np.linalg.solve(A, b) # solves A @ x = b directly</pre>
+    <b>Production habit:</b> learn with <code>inverse</code>, but in real code prefer
+    <code>np.linalg.solve(A, b)</code> — faster and more numerically accurate, since
+    computing the full inverse is unnecessary extra work (same idea as not computing
+    <code>1/5</code> separately just to then multiply by 40).
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Transpose (.T)</td><td>flip rows ↔ columns; shape (r,c) → (c,r)</td></tr>
+      <tr><td>X.T @ X vs X @ X.T</td><td>feature-vs-feature grid vs row-vs-row grid</td></tr>
+      <tr><td>Identity matrix (I)</td><td>matrix version of "1" — does nothing: A @ I = A</td></tr>
+      <tr><td>np.eye(n)</td><td>build an n×n identity matrix</td></tr>
+      <tr><td>Determinant (2×2)</td><td>a·d − b·c — the diagonal-minus-off-diagonal number</td></tr>
+      <tr><td>det(A) = 0</td><td>NO inverse exists — matrix is "singular"</td></tr>
+      <tr><td>Inverse (A⁻¹)</td><td>matrix version of "1/5" — undoes A; A @ A⁻¹ = I</td></tr>
+      <tr><td>2×2 inverse recipe</td><td>swap diagonal → flip sign on other two → divide by det</td></tr>
+      <tr><td>Matrices are NOT commutative</td><td>A @ B ≠ B @ A — cancel from the same side only</td></tr>
+      <tr><td>A @ x = b → x = A⁻¹ @ b</td><td>solving unknowns using the inverse</td></tr>
+      <tr><td>Square-only rule</td><td>only square matrices (rows=cols) can have a true inverse</td></tr>
+      <tr><td>Pseudo-inverse</td><td>the fix for non-square matrices — seed of real linear regression</td></tr>
+      <tr><td>Floating-point dust</td><td>0.999999998 instead of 1.0 — normal, never use == on floats</td></tr>
+      <tr><td>np.isclose(a, b)</td><td>correct way to check float equality</td></tr>
+      <tr><td>np.set_printoptions(precision=4, suppress=True)</td><td>clean display, hides sci-notation dust</td></tr>
+      <tr><td>np.linalg.det / inv / solve</td><td>determinant / inverse / direct system solver</td></tr>
+      <tr><td>Prefer solve() over inv()</td><td>faster & more accurate in real production code</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 4 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-01 / day-04 · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
