@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 5 Notes — Linear Regression: The Normal Equation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: #4a6b3a;
+    margin-bottom: 25px;
+  }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 22px;
+  }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .arrow-diagram {
+    text-align: center;
+    font-size: 20px;
+    margin: 10px 0;
+  }
+  .highlight {
+    background: #fce27a;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  td, th {
+    border: 1.5px dashed #a08a5e;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 17px;
+  }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note {
+    margin-top: 20px;
+    font-size: 15px;
+    color: #6a6a6a;
+    font-style: italic;
+  }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 5 — Linear Regression: The Normal Equation</h1>
+  <div class="subtitle">Week 1 · Day 5 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Days 1–4 built the tools. Today they <span class="highlight">assemble into your first
+    real ML algorithm</span> — solved by hand, no training loop, no guessing.
+    Matmul (Day 3) + transpose + inverse (Day 4) = Linear Regression.
+  </div>
+
+  <h2>What does "better weights" even mean?</h2>
+  <div class="box green">
+    <span class="label green">Error / residual</span> = actual − predicted, one per row.
+    <br><br>
+    Raw errors can't just be added — positive and negative errors
+    <span class="highlight">cancel out</span> and hide a bad model (+1000 and −1000 → looks like 0!).
+    <br><br>
+    <b>Fix (same trick as Day 2's norm):</b> square every error before adding.
+    Squaring kills negative cancellation AND punishes big mistakes far harder than small ones.
+    <pre>SSE = Σ (actual − predicted)²   ("Sum of Squared Errors")</pre>
+    <b>"Better weights" = weights that make SSE smaller.</b> Best weights = the absolute minimum.
+    Finding the minimum of a function = calculus territory.
+  </div>
+
+  <h2>The derivation — from SSE to the formula</h2>
+  <div class="box orange">
+    <pre>SSE(w) = (y − Xw)ᵀ(y − Xw)
+       = yᵀy − 2wᵀXᵀy + wᵀXᵀXw</pre>
+    Take the derivative w.r.t. <code>w</code> (vector calculus rules — the grown-up
+    version of <code>d/dw(cw)=c</code> and <code>d/dw(aw²)=2aw</code>), set it to 0:
+    <pre>dSSE/dw = −2Xᵀy + 2XᵀXw = 0
+        XᵀXw = Xᵀy</pre>
+    This is literally <code>A@x=b</code> from Day 4. Solve the same way:
+    <pre class="highlight-pre"><b>w = (XᵀX)⁻¹ Xᵀy</b></pre>
+    <code>XᵀX</code> is always symmetric (Day 4 transpose rule:
+    <code>(XᵀX)ᵀ = XᵀXᵀᵀ = XᵀX</code>) and always "opens upward" like a bowl —
+    guaranteed minimum, never a maximum.
+  </div>
+
+  <h2>The bias trick</h2>
+  <div class="box purple">
+    Add a column of <code>1</code>s to <code>X</code> before anything else.
+    <pre>X_b = np.hstack([np.ones((n,1)), X])</pre>
+    Now <code>X_b @ w</code> automatically includes the intercept — the weight
+    attached to the <code>1</code>s column <i>is</i> the bias, no separate <code>+b</code> needed.
+  </div>
+
+  <h2>LinearRegressionScratch — the class</h2>
+  <div class="box pink">
+<pre>class LinearRegressionScratch:
+    def fit(self, X, y):
+        ones = np.ones((X.shape[0], 1))
+        X_b = np.hstack([ones, X])
+        XtX = X_b.T @ X_b
+        Xty = X_b.T @ y
+        self.w = np.linalg.inv(XtX) @ Xty
+        return self
+
+    def predict(self, X):
+        ones = np.ones((X.shape[0], 1))
+        X_b = np.hstack([ones, X])
+        return X_b @ self.w
+
+    def score(self, X, y):
+        y_pred = self.predict(X)
+        sse = np.sum((y - y_pred) ** 2)
+        sst = np.sum((y - np.mean(y)) ** 2)
+        return 1 - (sse / sst)</pre>
+    <code>self.w</code> is the whole point of a class over a script — the weights
+    survive after <code>fit()</code> ends, ready for <code>predict()</code> later.
+    Verified against <code>sklearn.LinearRegression</code> — identical weights,
+    every time.
+  </div>
+
+  <h2>The SSE = 0 trap</h2>
+  <div class="bug">
+    4 houses, 4 unknowns (bias+3 features) → SSE landed on <b>exactly 0</b>.
+    Not because the model is smart — because equal equations & unknowns always
+    have one exact solution (same as Day 4's square systems). Add a 5th house
+    and SSE became a small, honest nonzero number instead.
+    <br><br>
+    <span class="highlight">More rows than features forces real learning</span>
+    instead of just memorizing/threading a needle through every point.
+    This is the seed of <b>overfitting</b>.
+  </div>
+
+  <h2>R² — how good is the model, really?</h2>
+  <div class="box green">
+    <pre>SST = Σ(actual − mean)²      "dumb baseline": always guess the average
+R²  = 1 − (SSE / SST)</pre>
+    <ul>
+      <li><b>R² = 1</b> → perfect fit</li>
+      <li><b>R² = 0</b> → no better than guessing the average every time</li>
+      <li><b>R² &lt; 0</b> → actively worse than guessing the average</li>
+    </ul>
+    Student dataset scored <b>R² = 0.9936</b> — matched sklearn's
+    <code>.score()</code> exactly.
+  </div>
+
+  <h2>R² — the 4 traps (deeper dive)</h2>
+  <div class="bug">
+    <b>1. Adding ANY feature — even random noise — never lowers R².</b>
+    Fix: <code>Adjusted R²</code> penalizes extra features that don't earn their place.
+  </div>
+  <div class="bug">
+    <b>2. High R² on training data can be a lie.</b> It measures memorization,
+    not future performance. Must eventually be tested on unseen/held-out data
+    (train/test split — coming later).
+  </div>
+  <div class="bug">
+    <b>3. R² has no opinion on whether the relationship's SHAPE is right.</b>
+    A real curved pattern can score badly under a straight-line model —
+    low R² sometimes means "wrong kind of model," not "no pattern exists."
+  </div>
+  <div class="bug">
+    <b>4. R² ≠ correlation ≠ causation.</b> High R² between two unrelated things
+    (ice cream sales & drownings) just means a hidden third factor (heat) drives both.
+  </div>
+
+  <h2>Multicollinearity — breaking it on purpose</h2>
+  <div class="box orange">
+    Added <code>study_minutes = study_hours × 60</code> — a duplicate column,
+    same info, different units.
+    <pre>det(XᵀX) = 0.0
+inv(XᵀX)  →  LinAlgError: Singular matrix</pre>
+    Day 4's <code>det(A)=0</code> rule, now hit for real. Two columns holding
+    the same fact → no unique set of weights exists.
+  </div>
+  <div class="bug">
+    <b>Critical mistake to avoid:</b> <code>inv()</code>/<code>det()</code> ONLY
+    accept <u>square</u> matrices. Raw <code>X</code> or <code>X_b</code> is a
+    rectangle (rows=students ≠ cols=features) — testing singularity there gives
+    a shape error, not the real answer. <b>Always test on <code>XᵀX</code></b>
+    (always square, guaranteed, regardless of row count).
+  </div>
+  <div class="box purple">
+    <span class="label purple">The fix:</span> <code>pinv()</code> (pseudo-inverse)
+    doesn't need one unique answer — it picks the smallest, most stable solution
+    among infinite valid options.
+    <pre>w = np.linalg.pinv(XtX) @ (X_b.T @ y)
+w = np.linalg.pinv(X_b) @ y                    # shortcut, same answer
+w, *_ = np.linalg.lstsq(X_b, y, rcond=None)    # production standard</pre>
+    Result: duplicate columns split the credit almost arbitrarily between them
+    (<code>study_hours</code>: 0.0012, <code>study_minutes</code>: 0.0693) while
+    <code>bias</code>/<code>sleep</code>/<code>practice</code> stayed identical.
+    <span class="highlight">Predictions still work fine — individual weights become
+    meaningless.</span> <code>lstsq</code>'s <code>rank</code> output confirms it:
+    rank 4 out of 5 columns = redundancy detected automatically.
+  </div>
+
+  <h2>Extrapolation danger</h2>
+  <div class="bug">
+    A model happily predicted a <b>negative house price</b> for an extreme,
+    never-seen combination (1 bedroom, 700 sqft, 15 yrs old) — far outside the
+    training range. Linear models draw a straight line forever in both
+    directions with zero awareness reality doesn't work that way.
+    Always sanity-check predictions against the training data's actual range.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Error / residual</td><td>actual − predicted, one per row</td></tr>
+      <tr><td>SSE</td><td>Σ(error)² — the "badness score" to minimize</td></tr>
+      <tr><td>Normal Equation</td><td>w = (XᵀX)⁻¹ Xᵀy — closed-form minimum of SSE</td></tr>
+      <tr><td>Bias trick</td><td>hstack a column of 1s onto X before anything else</td></tr>
+      <tr><td>self.w</td><td>weights saved on the object — survive after fit() ends</td></tr>
+      <tr><td>SSE = 0 trap</td><td>#rows = #unknowns → perfect but meaningless memorization</td></tr>
+      <tr><td>SST</td><td>Σ(actual − mean)² — error of the "always guess average" baseline</td></tr>
+      <tr><td>R²</td><td>1 − (SSE/SST) — fraction of variation explained, 1=perfect, 0=useless</td></tr>
+      <tr><td>Adjusted R²</td><td>R² with a penalty for extra, non-useful features</td></tr>
+      <tr><td>Multicollinearity</td><td>duplicate/redundant columns → XᵀX singular, det=0</td></tr>
+      <tr><td>Test singularity on</td><td>XᵀX (always square) — NEVER raw X or X_b (rectangle)</td></tr>
+      <tr><td>pinv()</td><td>works on any shape; picks smallest stable solution when inv() fails</td></tr>
+      <tr><td>lstsq()</td><td>production-grade solver; also reports rank & singular values</td></tr>
+      <tr><td>Extrapolation</td><td>predicting far outside training range — untrustworthy, even if "correct" math</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 5 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-01 / day-05-linear-regression-normal-equation · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
