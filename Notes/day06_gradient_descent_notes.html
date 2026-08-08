@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 6 Notes — Gradient Descent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: #4a6b3a;
+    margin-bottom: 25px;
+  }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 22px;
+  }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .arrow-diagram {
+    text-align: center;
+    font-size: 20px;
+    margin: 10px 0;
+  }
+  .highlight {
+    background: #fce27a;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  td, th {
+    border: 1.5px dashed #a08a5e;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 17px;
+  }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note {
+    margin-top: 20px;
+    font-size: 15px;
+    color: #6a6a6a;
+    font-style: italic;
+  }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 6 — Gradient Descent</h1>
+  <div class="subtitle">Week 1 · Day 6 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Day 5 solved for the exact best weights in one shot using
+    <code>(XᵀX)⁻¹</code>. Today's question: <span class="highlight">what happens when the
+    dataset has thousands or millions of features?</span> The exact formula stops being usable —
+    so instead of solving in one shot, we <b>start with a guess and walk downhill,
+    a little at a time</b>, until we arrive at (or near) the same answer.
+  </div>
+
+  <h2>Why the exact formula breaks at scale — measured, not assumed</h2>
+  <div class="box green">
+    <span class="label green">Timed <code>np.linalg.inv()</code> on real matrices:</span>
+    <pre>n=     2 -> 0.002 sec
+n=   100 -> 0.023 sec
+n=  1000 -> 0.340 sec
+n=  5000 -> 3.233 sec
+n= 10000 -> 23.779 sec</pre>
+    Doubling matrix size (5000→10000) made it ~7x slower, not 2x — matrix inversion
+    is roughly <b>O(n³) — cubic</b>, not linear. At millions of features
+    (real embedding models), this becomes completely impossible, even once.
+    <br><br>
+    <b>Why cubic:</b> think Gaussian elimination — roughly n rows × n columns × n
+    operations-per-cancellation. Vectorization makes each of those operations fast,
+    but it can't reduce how many there are.
+  </div>
+
+  <h2>SSE is a U-shaped bowl</h2>
+  <div class="box orange">
+    Plotting SSE against different guesses of <code>w</code> (one feature, no bias) on a
+    tiny dataset produced a clean U-shape — SSE is high far from the true minimum,
+    and dips to a single lowest point:
+    <pre>w=-1.0 -> SSE=273.00
+w= 0.0 -> SSE= 86.00
+w= 1.0 -> SSE=  9.00   <- near the minimum
+w= 2.0 -> SSE= 42.00
+w= 3.0 -> SSE=185.00</pre>
+    This U-shape is guaranteed by the math (same reason <code>XᵀX</code> "opens upward"
+    from Day 5) — SSE being built from squared terms means it can never have more
+    than one minimum for linear regression.
+  </div>
+
+  <h2>Gradient = slope; descent = subtract</h2>
+  <div class="box purple">
+    On the left side of the bowl, slope (gradient) is <b>negative</b> → need to
+    increase <code>w</code>. On the right side, gradient is <b>positive</b> → need to
+    decrease <code>w</code>. In both cases:
+    <pre>w_new = w − (learning_rate × gradient)</pre>
+    <span class="highlight">Always subtract, never add</span> — subtracting a negative
+    gradient correctly increases w; subtracting a positive gradient correctly decreases it.
+    Verified: at <code>w=0</code>, gradient=-132, learning_rate=0.01 →
+    <code>w_new = 0 − (0.01 × -132) = 1.32</code>.
+  </div>
+
+  <h2>The single-feature gradient formula</h2>
+  <div class="box">
+<pre>gradient = -2 * sum(x * (y - predicted))</pre>
+    Generalizes directly to the full-matrix version from Day 5's derivation
+    (<code>dSSE/dw = -2XᵀXw + 2Xᵀy = -2Xᵀ(y-Xw)</code>) — same formula, matrix notation
+    just lets it scale to any number of features at once, same pattern as <code>@</code>
+    scaling <code>dot_product_scratch</code> on Day 3.
+  </div>
+
+  <h2>Watching convergence happen, step by step</h2>
+  <div class="box green">
+<pre>step 0: w=0.0000  gradient=-132.00  SSE=86.00
+step 1: w=1.3200  gradient=-132.00  SSE= 7.59
+step 2: w=1.1880  gradient=  13.20  SSE= 6.81
+step 3: w=1.2012  gradient=  -1.32  SSE= 6.80
+step 5: w=1.2000  gradient=  -0.01  SSE= 6.80   <- converged</pre>
+    Gradient magnitude shrinks on its own as we approach the minimum —
+    <span class="highlight">no manual slowdown needed</span>. This falls directly out of
+    the bowl's shape: steep far away, flat near the bottom. Big confident steps far
+    out, tiny cautious steps near the answer — for free.
+  </div>
+
+  <h2>Learning rate — the real danger zone</h2>
+  <div class="bug">
+    <b>Too small (0.001):</b> converges, but slowly — wastes compute.
+    <br><br>
+    <b>Too large:</b> doesn't just slow down — <u>diverges completely</u>. Tested
+    learning_rate=0.5 starting at w=0: SSE exploded from 86 → 230,954 → 673 million →
+    ...→ 4×10²⁹ by step 8. Overshoots the minimum onto a steeper part of the bowl,
+    producing an even bigger gradient next step — snowballs out of control.
+    <br><br>
+    On the scaled student dataset, the real boundary was sharp:
+    <pre>lr=0.001 -> converged (SSE=7.17)
+lr=0.01  -> converged (SSE=4.26)
+lr=0.1   -> DIVERGED (SSE=inf)
+lr=0.5, 1.0, 2.0 -> DIVERGED (SSE=nan)</pre>
+  </div>
+
+  <h2>GradientDescentScratch — the class</h2>
+  <div class="box pink">
+<pre>class GradientDescentScratch:
+    def __init__(self, learning_rate=0.01, n_iterations=1000):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.loss_history = []          # empty list, nothing recorded yet
+
+    def fit(self, X, y):
+        ones = np.ones((X.shape[0], 1))
+        X_b = np.hstack([ones, X])       # bias trick, same as Day 5
+        self.w = np.zeros(X_b.shape[1])  # start anywhere on the bowl
+
+        for i in range(self.n_iterations):
+            predictions = X_b @ self.w
+            gradient = -2 * X_b.T @ (y - predictions)
+            self.w = self.w - self.learning_rate * gradient
+
+            sse = np.sum((y - predictions) ** 2)
+            self.loss_history.append(sse)   # track progress each step
+        return self
+
+    def predict(self, X):
+        ones = np.ones((X.shape[0], 1))
+        X_b = np.hstack([ones, X])
+        return X_b @ self.w</pre>
+    Verified against sklearn on the student dataset (scaled features):
+    <code>[67.5714, 9.7273, 1.2643, 1.8174]</code> — identical on both, to 4 decimals.
+  </div>
+
+  <h2>Feature scaling — Gradient Descent's real requirement</h2>
+  <div class="bug">
+    <b>Same learning rate (0.05), only difference = scaling:</b>
+    <pre>Scaled features   -> weights match sklearn exactly
+Unscaled features -> weights = [nan, nan, nan, nan]  (total blowup)</pre>
+    <span class="highlight">The Normal Equation (Day 5) doesn't care about feature scale.
+    Gradient Descent does.</span> Uneven feature ranges create a "canyon" —
+    steep in one direction, flat in another — and a single learning rate that's
+    safe for one dimension can explode another. This is the real, practical reason
+    feature scaling is standard preprocessing before gradient-based training.
+  </div>
+
+  <h2>Diminishing returns on iteration count</h2>
+  <div class="box orange">
+<pre>n_iterations=    10 -> SSE=479.238997
+n_iterations=   100 -> SSE=  4.372114   <- most progress happens here
+n_iterations=  1000 -> SSE=  3.818182
+n_iterations= 10000 -> SSE=  3.818182   <- identical to 6 decimals, wasted compute</pre>
+    10x more iterations (1000→10000) bought essentially nothing. This is the
+    real-world motivation for <b>early stopping</b> — monitor <code>loss_history</code>,
+    stop once improvement drops below a tiny threshold, instead of committing to a
+    fixed iteration count blindly.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Why not always use (XᵀX)⁻¹</td><td>O(n³) cost — infeasible for many features</td></tr>
+      <tr><td>SSE vs w</td><td>always U-shaped (bowl) for linear regression</td></tr>
+      <tr><td>Gradient</td><td>slope of the loss bowl at current w</td></tr>
+      <tr><td>Update rule</td><td>w_new = w − (learning_rate × gradient) — always subtract</td></tr>
+      <tr><td>gradient formula (matrix form)</td><td>-2 · Xᵀ · (y − predictions)</td></tr>
+      <tr><td>Why steps shrink automatically</td><td>bowl is steep far out, flat near the minimum</td></tr>
+      <tr><td>Learning rate too small</td><td>converges, but slow — wastes compute</td></tr>
+      <tr><td>Learning rate too large</td><td>diverges — overshoots onto steeper ground, snowballs to NaN/inf</td></tr>
+      <tr><td>self.loss_history</td><td>list of SSE per iteration — proves convergence, flattens near minimum</td></tr>
+      <tr><td>Feature scaling</td><td>required for Gradient Descent (not for Normal Equation) — prevents the "canyon" problem</td></tr>
+      <tr><td>np.isnan() / np.isinf()</td><td>detect divergence programmatically</td></tr>
+      <tr><td>Diminishing returns</td><td>most convergence happens early; extra iterations later add little</td></tr>
+      <tr><td>Early stopping (preview)</td><td>halt training once loss stops meaningfully improving</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 6 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-01 / day-06-gradient-descent · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
