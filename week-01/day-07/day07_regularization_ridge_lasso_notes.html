@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 7 Notes — Regularization: Ridge & Lasso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: #4a6b3a;
+    margin-bottom: 25px;
+  }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 22px;
+  }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .highlight {
+    background: #fce27a;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  td, th {
+    border: 1.5px dashed #a08a5e;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 17px;
+  }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note {
+    margin-top: 20px;
+    font-size: 15px;
+    color: #6a6a6a;
+    font-style: italic;
+  }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+  .qa {
+    border-left: 4px solid #6b4fa0;
+    padding: 6px 14px;
+    margin: 10px 0;
+    background: #f8f6fd;
+  }
+  .qa .q { font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; color: #4a3372; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 7 — Regularization: Ridge &amp; Lasso</h1>
+  <div class="subtitle">Week 1 · Day 7 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Day 5 proved adding <span class="highlight">any</span> feature — even pure noise —
+    can never lower R². The model happily grows huge weights to squeeze out every
+    last drop of training fit, including fitting lucky coincidences. Today's fix:
+    tax the loss function for having big weights, so the model stops wanting to.
+  </div>
+
+  <h2>Why big weights are the disease</h2>
+  <div class="box orange">
+    With ~20 rows, a column of pure random numbers can, by pure chance, line up a
+    little with y in <i>this specific sample</i>. The model can't tell "real signal"
+    from "lucky coincidence" — it takes any nonzero weight that shaves off SSE, even
+    a sliver. That's overfitting, made concrete.
+    <br><br>
+    With near-duplicate columns (like <code>study_hours</code>/<code>study_minutes</code>),
+    <code>XᵀX</code> becomes <b>ill-conditioned</b> — not always a clean det=0 crash,
+    sometimes just quietly unstable: huge, erratic, sign-flipping weights that
+    mostly cancel out in the final prediction but are individually meaningless.
+  </div>
+
+  <h2>Ridge (L2) — tax the sum of squared weights</h2>
+  <div class="box green">
+    <pre>Ridge Loss = (y − Xw)ᵀ(y − Xw) + λ(wᵀw)</pre>
+    Derivative set to 0 (same steps as Day 5, one new term):
+    <pre>−2Xᵀy + 2XᵀXw + 2λw = 0
+w = (XᵀX + λI)⁻¹ Xᵀy</pre>
+    Same Normal Equation as Day 5 — just <code>λI</code> added inside the inverse.
+    <code>λ=0</code> → collapses exactly back to plain Linear Regression.
+    Bonus: <code>λI</code> also nudges a singular <code>XᵀX</code> away from
+    det=0 — Ridge partially fixes Day 5's multicollinearity crash for free.
+  </div>
+
+  <h2>Don't penalize the bias</h2>
+  <div class="bug">
+    Bias isn't a "feature weight" — it's just a baseline (e.g. average house price
+    ≈ 200000). Penalizing it like a real weight would create a massive, pointless
+    penalty and drag every prediction toward zero for no real reason.
+    <b>Fix:</b> zero out row/col 0 of the identity matrix before adding it:
+    <code>I[0,0] = 0</code>.
+  </div>
+
+  <h2>RidgeRegressionScratch</h2>
+  <div class="box pink">
+<pre>class RidgeRegressionScratch:
+    def __init__(self, alpha=1.0):
+        self.alpha = alpha
+
+    def fit(self, X, y):
+        ones = np.ones((X.shape[0], 1))
+        X_b = np.hstack([ones, X])
+        XtX = X_b.T @ X_b
+        Xty = X_b.T @ y
+
+        n_features = X_b.shape[1]
+        I = np.eye(n_features)
+        I[0, 0] = 0                      # don't penalize bias
+
+        self.w = np.linalg.inv(XtX + self.alpha * I) @ Xty
+        return self
+
+    def predict(self, X):
+        ones = np.ones((X.shape[0], 1))
+        X_b = np.hstack([ones, X])
+        return X_b @ self.w                # identical to Day 5's predict()</pre>
+    <b>Key insight:</b> <code>predict()</code> never changes across algorithms —
+    all of an algorithm's "personality" lives in <code>fit()</code>.
+  </div>
+
+  <h2>What the alpha sweep revealed</h2>
+  <div class="bug">
+    <pre>alpha=  0 -> [35.59, 4.86, 1.23, 1.09]
+alpha=  1 -> [36.78, 3.70, 1.11, 2.41]
+alpha= 10 -> [39.99, 2.87, 1.17, 2.30]
+alpha=100 -> [56.08, 1.16, 0.51, 0.95]</pre>
+    Not a clean shrink for every weight. <b>Bias climbs</b> (35→56) even though it's
+    exempt — it's the escape valve picking up slack the shrinking features left
+    behind, so the total prediction still lands near the right number.
+    <b>Feature 3 rose before falling</b> — correlated features "fight over credit";
+    squeezing one can shift borrowed credit onto a correlated neighbor before alpha
+    gets large enough to overpower that too.
+  </div>
+
+  <h2>Lasso (L1) — why it's geometrically different</h2>
+  <div class="box purple">
+    Ridge's boundary is a smooth <b>circle</b> — loss contours can touch it
+    anywhere, almost never exactly on an axis. Lasso's boundary is a
+    <b>diamond</b> with sharp corners — contours are far more likely to first
+    touch a pointy corner than a flat edge, and a corner touch means one weight
+    lands <b>exactly on an axis → exactly zero</b>. Ridge shrinks; Lasso can delete.
+  </div>
+
+  <h2>Why the math breaks — and the fix</h2>
+  <div class="bug">
+    Ridge's penalty <code>w²</code> is a smooth bowl — has a real slope
+    everywhere, even at w=0. Lasso's penalty <code>|w|</code> is a V-shape with a
+    <b>sharp corner exactly at w=0</b> — no single defined slope there, so
+    "set derivative to 0" breaks. <b>No closed-form matrix formula exists for Lasso.</b>
+  </div>
+  <div class="box green">
+    <b>Fix — coordinate descent:</b> solve one weight at a time, holding the
+    rest fixed, repeat until stable. Each single-weight update uses
+    <b>soft-thresholding</b>:
+    <pre>if rho >  threshold: w = rho − threshold
+if rho < −threshold: w = rho + threshold
+else:                 w = 0</pre>
+    Worked example: <code>ρ=12, λ=5</code> → <code>7</code> (survives, shaved).
+    <code>ρ=3, λ=5</code> → falls in the "dead zone" (−λ to +λ) → <code>0</code>
+    (killed outright). Bigger λ → wider dead zone → more features die.
+  </div>
+
+  <h2>Handling bias — centering trick</h2>
+  <div class="box orange">
+    Best-fit line always passes through <code>(mean_X, mean_y)</code> — always,
+    by definition of minimizing SSE. So: subtract the mean from X and y first →
+    the centered intercept becomes exactly 0, nothing to solve for in the loop.
+    Recover the real bias at the end:
+    <pre>bias = mean_y − mean_X @ w</pre>
+    Proven by hand: hours=[2,4,6], scores=[50,70,90] → centered slope=10 →
+    unwound: <code>30 + 10x</code> → matches every original point exactly.
+  </div>
+
+  <h2>LassoRegressionScratch</h2>
+  <div class="box pink">
+<pre>class LassoRegressionScratch:
+    def __init__(self, alpha=1.0, n_iterations=1000):
+        self.alpha = alpha
+        self.n_iterations = n_iterations
+
+    def fit(self, X, y):
+        self.mean_X, self.mean_y = X.mean(axis=0), y.mean()
+        X_c, y_c = X - self.mean_X, y - self.mean_y
+        n_samples, n_features = X_c.shape
+        self.w = np.zeros(n_features)
+
+        def soft_threshold(rho, threshold):
+            if rho > threshold:  return rho - threshold
+            elif rho < -threshold: return rho + threshold
+            else: return 0
+
+        threshold = n_samples * self.alpha
+        for _ in range(self.n_iterations):
+            for j in range(n_features):
+                residual = y_c - X_c @ self.w + X_c[:, j] * self.w[j]
+                rho_j = X_c[:, j] @ residual
+                z_j = np.sum(X_c[:, j] ** 2)
+                self.w[j] = soft_threshold(rho_j, threshold) / z_j
+
+        self.bias = self.mean_y - self.mean_X @ self.w
+        return self
+
+    def predict(self, X):
+        return X @ self.w + self.bias</pre>
+    <code>residual</code> = leftover error pretending feature j contributes
+    nothing → its honest current opportunity to prove usefulness (= ρ).
+  </div>
+
+  <h2>The scale trap — a NEW place Day 6's lesson bites</h2>
+  <div class="bug">
+    Unscaled multicollinearity data: <code>study_minutes</code> survived,
+    <code>study_hours</code> died instantly. After scaling: <b>flipped</b> —
+    <code>study_hours</code> survived, <code>study_minutes</code> died.
+    <br><br>
+    <b>Why:</b> <code>w[j] = soft_threshold(rho_j, threshold) / z_j</code> — a
+    60x-bigger-scale feature gets a 3600x bigger <code>z_j</code>, so the same
+    fixed threshold barely dents it relative to its own scale. Scale, not real
+    importance, decided the winner. <span class="highlight">Always scale features
+    before Ridge/Lasso — Lasso is even more sensitive than Ridge here.</span>
+  </div>
+
+  <h2>Lasso's real weakness — arbitrary winners</h2>
+  <div class="box purple">
+    Once truly duplicate columns are on equal footing (scaled), which one Lasso
+    keeps is close to arbitrary — decided by loop order, not true importance.
+    Ridge is the "team player" (splits credit smoothly); Lasso "picks a winner"
+    and drops the rest, even among equally valid correlated features.
+    <br><br>
+    <b>Elastic Net</b> = <code>λ1·|w| + λ2·w²</code> — combines both: keeps
+    Lasso's ability to zero out useless features, keeps Ridge's fairness for
+    correlated groups. Name to remember, not built by hand yet.
+  </div>
+
+  <h2>Verified against sklearn</h2>
+  <div class="box green">
+<pre>from sklearn.linear_model import Ridge, Lasso
+
+ridge_sk = Ridge(alpha=10).fit(X, y)
+lasso_sk = Lasso(alpha=10).fit(X_scaled, y)
+
+print("Ridge scratch:", np.round(RidgeRegressionScratch(alpha=10).fit(X, y).w, 4))
+print("Ridge sklearn:", np.round(np.r_[ridge_sk.intercept_, ridge_sk.coef_], 4))
+
+print("Lasso scratch:", np.round(LassoRegressionScratch(alpha=10).fit(X_scaled, y).w, 4))
+print("Lasso sklearn:", np.round(lasso_sk.coef_, 4))</pre>
+    <b>Output:</b>
+<pre>Ridge scratch: [22.9157, 0.0016, 1.4190, 0.8250, 0.0967]
+Ridge sklearn: [22.9157, 0.0016, 1.4190, 0.8250, 0.0967]   ✓ exact match
+
+Lasso scratch: [2.9286, 0, 0, 0]
+Lasso sklearn: [2.9286, 0, 0, 0]                            ✓ exact zero-pattern match</pre>
+  </div>
+
+  <h2>Interview questions — plain-language answers</h2>
+  <div class="qa">
+    <div class="q">Q1. Why does Ridge never hit exact zero, but Lasso can?</div>
+    Ridge's penalty is a smooth curve — no sharp corner, so the optimizer just
+    gently nudges weights down without ever needing to commit to exactly zero.
+    Lasso's penalty has a sharp corner right at zero, creating a "dead zone" —
+    anything weak enough falls in it and gets snapped straight to <b>0</b>.
+  </div>
+  <div class="qa">
+    <div class="q">Q2. What happens as alpha → ∞ for both?</div>
+    Every real feature weight gets crushed to zero — using any feature stops
+    being worth the penalty cost. Both collapse to just predicting the average
+    of y every time (only the untaxed bias survives).
+  </div>
+  <div class="qa">
+    <div class="q">Q3. Why does scaling matter more for Lasso than expected?</div>
+    Both formulas look "algebraic" like the scale-agnostic Normal Equation, so
+    it's tempting to assume scale doesn't matter. But Lasso's soft-threshold
+    compares a fixed penalty against each feature's own raw-scale signal and
+    divides by its own squared magnitude — bigger raw numbers get an easier
+    ride, purely from units, nothing to do with real importance.
+  </div>
+  <div class="qa">
+    <div class="q">Q4. When would you pick Elastic Net?</div>
+    Whenever you have groups of correlated/redundant features and don't want
+    Lasso's "arbitrarily kill all but one" behavior, but still want the ability
+    to zero out genuinely useless features that Ridge can never fully remove.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Why regularize</td><td>unchecked models grow huge weights to fit noise/coincidence</td></tr>
+      <tr><td>Ridge (L2) loss</td><td>SSE + λ(wᵀw) — sum of squared weights as penalty</td></tr>
+      <tr><td>Ridge formula</td><td>w = (XᵀX + λI)⁻¹ Xᵀy — Day 5's formula, λI added</td></tr>
+      <tr><td>alpha=0</td><td>collapses to plain Linear Regression exactly</td></tr>
+      <tr><td>I[0,0]=0</td><td>excludes bias from the penalty</td></tr>
+      <tr><td>Ridge bonus</td><td>λI also helps fix a singular XᵀX (Day 5 crash)</td></tr>
+      <tr><td>Ridge shrink pattern</td><td>not uniform — bias grows, correlated features can rise then fall</td></tr>
+      <tr><td>Lasso (L1) loss</td><td>SSE + λ(Σ|w|) — sum of absolute weights as penalty</td></tr>
+      <tr><td>Why no closed form</td><td>|w| has a non-differentiable corner at w=0</td></tr>
+      <tr><td>Coordinate descent</td><td>solve one weight at a time, holding rest fixed, repeat</td></tr>
+      <tr><td>Soft-thresholding</td><td>if |ρ| ≤ λ: weight=0 (killed); else shave λ off ρ</td></tr>
+      <tr><td>Centering trick</td><td>subtract means first → intercept=0 in-loop, recovered after</td></tr>
+      <tr><td>bias = mean_y − mean_X·w</td><td>unwinds the centering at the end</td></tr>
+      <tr><td>Lasso needs scaling MORE</td><td>fixed threshold vs per-feature z_j → scale decides survivor</td></tr>
+      <tr><td>Lasso weakness</td><td>among correlated duplicates, picks a near-arbitrary winner</td></tr>
+      <tr><td>Ridge vs Lasso geometry</td><td>circle (no corners) vs diamond (corners → exact zeros)</td></tr>
+      <tr><td>Elastic Net</td><td>λ1|w| + λ2w² — Lasso's sparsity + Ridge's stability</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 7 complete — Week 1 done!</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-01 / day-07-ridge-lasso-regularization · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Week 1 Handbook — Review, Scorecard & Week 2 Roadmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 46px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle { font-size: 18px; color: #4a6b3a; margin-bottom: 25px; }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 32px;
+    color: #1f5fa5;
+    margin: 34px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  h3 {
+    font-family: 'Caveat', cursive;
+    font-size: 24px;
+    color: #97530c;
+    margin: 18px 0 6px 0;
+  }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label { font-family: 'Caveat', cursive; font-weight: 700; font-size: 22px; }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .highlight { background: #fce27a; padding: 0 4px; border-radius: 3px; }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  td, th { border: 1.5px dashed #a08a5e; padding: 8px 10px; text-align: left; font-size: 16px; }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note { margin-top: 20px; font-size: 15px; color: #6a6a6a; font-style: italic; }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+  .fix {
+    border: 2px dashed #4a7d3a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0 16px 0;
+    background: #f2f9ec;
+    font-size: 16px;
+  }
+  .qa { border-left: 4px solid #6b4fa0; padding: 6px 14px; margin: 10px 0; background: #f8f6fd; }
+  .qa .q { font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; color: #4a3372; }
+  .score-bar {
+    display: inline-block; width: 140px; height: 14px; background: #eee5cf;
+    border-radius: 7px; overflow: hidden; vertical-align: middle; margin-left: 8px;
+    border: 1.5px solid #a08a5e;
+  }
+  .score-fill { height: 100%; background: #4a7d3a; }
+  .day-chip {
+    display: inline-block; font-family: 'Caveat', cursive; font-weight: 700;
+    font-size: 18px; color: #fff; background: #1f5fa5; border-radius: 6px;
+    padding: 2px 10px; margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Week 1 Handbook — Full Review</h1>
+  <div class="subtitle">Days 1–7 of 84 · Foundations Complete · AI Engineer Journey 2026</div>
+
+  <div class="box">
+    <span class="label">The arc of Week 1, in one breath:</span><br>
+    Numbers → arrows → similarity → combining (matmul) → undoing (inverse) →
+    your first real algorithm (Linear Regression) → making it scale (Gradient
+    Descent) → making it disciplined (Regularization). Every single day's tool
+    became an ingredient the very next day used. Nothing was wasted.
+  </div>
+
+  <h2>Day-by-Day: What Each Day Actually Built</h2>
+
+  <h3><span class="day-chip">Day 1</span> Vectors &amp; Matrices</h3>
+  <div class="box green">
+    Numbers-as-lists AND numbers-as-arrows are the same object, two lenses.
+    <code>array[i]</code> drops a dimension, <code>array[i:i+1]</code> keeps it —
+    the exact bug that breaks ML models expecting batch shape <code>(1,n)</code>.
+    Vectorization = push the loop into compiled C, 10–100x speedup, the pattern
+    every training step reuses.
+  </div>
+
+  <h3><span class="day-chip">Day 2</span> Dot Product, Norm &amp; Cosine Similarity</h3>
+  <div class="box orange">
+    Dot product = raw agreement score, but confused by <i>size</i> (a "louder"
+    vector fakes similarity). Cosine similarity fixes this by dividing out both
+    norms — pure direction, -1 to +1. <code>matrix @ matrix.T</code> = everyone
+    vs everyone in one shot — literally the core computation inside Transformer
+    attention.
+  </div>
+
+  <h3><span class="day-chip">Day 3</span> Matrix Multiplication &amp; NN Layers</h3>
+  <div class="box purple">
+    Matmul = Day 2's dot product, repeated over a grid. Shape rule:
+    <code>cols_A == rows_B</code>. <code>output = ReLU((x @ W) + b)</code> is
+    the entire content of a neural network layer — stacked, that's a deep net.
+    ReLU exists because stacked linear layers alone collapse into one linear
+    layer — no curve-learning power without it.
+  </div>
+
+  <h3><span class="day-chip">Day 4</span> Transpose, Identity &amp; Inverse</h3>
+  <div class="box pink">
+    First day about <i>undoing</i>, not combining. <code>A⁻¹</code> is defined
+    purely by <code>A @ A⁻¹ = I</code>. <code>det(A)=0</code> → no inverse
+    exists (singular matrix — redundant info, unrecoverable). Matrices are NOT
+    commutative — cancel from the same side only. This is the literal seed of
+    how Linear Regression gets solved with zero training loop.
+  </div>
+
+  <h3><span class="day-chip">Day 5</span> Linear Regression — the Normal Equation</h3>
+  <div class="box green">
+    First real algorithm, closed-form: <code>w = (XᵀX)⁻¹ Xᵀy</code>. Bias trick
+    (hstack a column of 1s). R² measures fraction of variance explained — but
+    can be gamed by adding useless features (never lowers R²) or lie about
+    future performance (memorization vs generalization). Multicollinearity →
+    singular <code>XᵀX</code> → must test singularity on <code>XᵀX</code>
+    (always square), never raw <code>X</code>.
+  </div>
+
+  <h3><span class="day-chip">Day 6</span> Gradient Descent</h3>
+  <div class="box orange">
+    Why not always use <code>(XᵀX)⁻¹</code>: measured O(n³) cost yourself —
+    5000→10000 features was ~7x slower, not 2x. SSE is a U-shaped bowl (proven,
+    not assumed — squared terms guarantee one minimum). Update rule:
+    <code>w_new = w − (lr × gradient)</code> — always subtract. Feature scaling
+    isn't optional here — unscaled data creates a "canyon" that blows up to NaN.
+  </div>
+
+  <h3><span class="day-chip">Day 7</span> Regularization — Ridge &amp; Lasso</h3>
+  <div class="box pink">
+    Fixes Day 5's open trap: tax large weights so noise stops looking useful.
+    Ridge: <code>w = (XᵀX + λI)⁻¹ Xᵀy</code> — smooth circular boundary, shrinks
+    but rarely zeroes. Lasso: diamond boundary with corners → soft-thresholding
+    → can delete features outright, but has no closed form (needs coordinate
+    descent) and is scale-sensitive in a different, sharper way than Gradient
+    Descent. Elastic Net (both penalties) named as the fix for Lasso's
+    "arbitrary winner" weakness — not built by hand yet.
+  </div>
+
+  <h2>The Golden Thread — How Every Day Chains Together</h2>
+  <div class="box">
+    <pre>Day 1 (numbers)
+   → Day 2 (dot product needs numbers)
+      → Day 3 (matmul = dot product, repeated)
+         → Day 4 (undo matmul: transpose + inverse)
+            → Day 5 (inverse solves XᵀXw = Xᵀy exactly)
+               → Day 6 (inverse too slow at scale → walk downhill instead)
+                  → Day 7 (Day 5's formula, one term added: + λI or + λ|w|)</pre>
+    Nothing this week was an isolated fact. Every day is a direct consequence
+    of the day before it — this is why re-deriving from Day 1 principles is
+    almost always faster than memorizing 7 separate formulas.
+  </div>
+
+  <h2>Live Review Session — Corrections That Actually Mattered</h2>
+  <div class="box">
+    Today's spot-check surfaced three precise misconceptions worth locking in
+    permanently — these are exactly the kind of details interviewers probe for.
+  </div>
+
+  <div class="bug">
+    <b>Correction 1 — What λI actually touches.</b><br>
+    Said: "adds a small positive value to every entry."<br>
+    Reality: <code>λI</code> only touches the <b>diagonal</b> — off-diagonal
+    entries of <code>XᵀX</code> (the feature-to-feature covariance terms) stay
+    completely untouched. This is exactly why <code>I[0,0]=0</code> works so
+    cleanly to exclude the bias — you're zeroing one specific diagonal cell,
+    nothing else.
+  </div>
+  <div class="fix">
+    <b>Locked-in version:</b> λI inflates each feature's own "self-energy"
+    (diagonal) just enough to break ties caused by near-duplicate columns,
+    without distorting the real relationships between features.
+  </div>
+
+  <div class="bug">
+    <b>Correction 2 — Why Gradient Descent breaks on unscaled data.</b><br>
+    Said: "it takes large/small steps without thinking."<br>
+    Reality: the real problem is a <b>single learning rate has to serve every
+    feature dimension at once</b>. Unscaled features create a canyon — steep in
+    one direction, flat in another. Safe-for-steep is too slow on flat;
+    safe-for-flat overshoots and explodes on steep. There's no single lr that
+    works for both — that's the actual mechanism, not just "big steps happen."
+  </div>
+  <div class="fix">
+    <b>Locked-in version:</b> scaling reshapes the canyon back into a round
+    bowl so one learning rate is fair in every direction simultaneously.
+  </div>
+
+  <div class="bug">
+    <b>Correction 3 — Why Lasso is scale-sensitive.</b><br>
+    Said: "scaling gives Lasso more confidence to choose."<br>
+    Reality: it's not about confidence — it's <b>a fixed threshold compared
+    against a per-feature <code>rho_j</code> that scales with the feature's own
+    raw units</b>. A 60x-bigger-scale feature produces a proportionally bigger
+    <code>rho_j</code> purely from unit size, so it clears the same fixed
+    threshold more easily — nothing to do with real importance.
+  </div>
+  <div class="fix">
+    <b>Locked-in version:</b> unscaled, Lasso is unfair, not cautious — it
+    rewards big raw numbers. Scaling makes the competition fair, though the
+    final winner among true duplicates is still close to arbitrary (loop-order
+    dependent).
+  </div>
+
+  <div class="bug">
+    <b>Correction 4 — Normal Equation vs Gradient Descent trigger.</b><br>
+    Said: "large dataset → use Gradient Descent."<br>
+    Reality: the deciding factor is <b>feature count</b>, not row count.
+    <code>XᵀX</code> is a <code>(features × features)</code> matrix — that's
+    what gets inverted, and that's what's O(n³). Row count is cheap for both
+    methods.
+  </div>
+  <div class="fix">
+    <b>Locked-in version, with your own measured numbers:</b> "5,000→10,000
+    features took inversion from 3.2s to 23.8s — a 7x slowdown from a 2x size
+    increase. At millions of features, that's not just slow, it's impossible."
+  </div>
+
+  <h2>Scorecard</h2>
+  <div class="box">
+    <table>
+      <tr><th>Day</th><th>Topic</th><th>Confidence</th></tr>
+      <tr><td>1</td><td>Vectors &amp; Matrices</td><td>Strong <span class="score-bar"><span class="score-fill" style="width:92%"></span></span></td></tr>
+      <tr><td>2</td><td>Dot Product / Cosine Similarity</td><td>Strong <span class="score-bar"><span class="score-fill" style="width:90%"></span></span></td></tr>
+      <tr><td>3</td><td>Matrix Multiplication / NN Layers</td><td>Strong <span class="score-bar"><span class="score-fill" style="width:88%"></span></span></td></tr>
+      <tr><td>4</td><td>Transpose / Identity / Inverse</td><td>Strong <span class="score-bar"><span class="score-fill" style="width:88%"></span></span></td></tr>
+      <tr><td>5</td><td>Linear Regression (Normal Eq.)</td><td>Solid <span class="score-bar"><span class="score-fill" style="width:82%"></span></span></td></tr>
+      <tr><td>6</td><td>Gradient Descent</td><td>Solid, one gap fixed today <span class="score-bar"><span class="score-fill" style="width:78%"></span></span></td></tr>
+      <tr><td>7</td><td>Ridge &amp; Lasso</td><td>Solid, two gaps fixed today <span class="score-bar"><span class="score-fill" style="width:76%"></span></span></td></tr>
+    </table>
+    <br>
+    <b>Overall Week 1: Strong.</b> Every core mechanic (dot product, matmul,
+    inverse, Normal Equation, gradient update, regularization penalty) was
+    correctly recalled unprompted. Every gap found today was a precision gap
+    in the <i>mechanism</i>, not a gap in the core concept — the intuition was
+    already right in all four cases, we just sharpened the "why" underneath it.
+  </div>
+
+  <h2>Knowledge Gaps — What to Keep an Eye On</h2>
+  <div class="box orange">
+    <ul>
+      <li><b>Mechanism-level precision under time pressure</b> — all 4 corrections
+      today were "right idea, slightly loose mechanism." Worth re-explaining
+      concepts out loud from scratch periodically, not just recognizing them.</li>
+      <li><b>Elastic Net</b> — named twice (Day 5's Adjusted R², Day 7's fix for
+      Lasso's arbitrary-winner problem) but never built by hand. Likely to
+      resurface in Week 2+.</li>
+      <li><b>Pseudo-inverse (<code>pinv</code>) internals</b> — used correctly as
+      a tool on Day 5, but the actual "how it picks the smallest stable
+      solution" mechanism hasn't been derived from scratch yet.</li>
+    </ul>
+  </div>
+
+  <h2>Interview Readiness</h2>
+  <div class="box purple">
+    <b>Rating: Ready for junior/associate-level ML-fundamentals questions on this material, with light prep.</b>
+    <ul>
+      <li>Can derive Normal Equation, Ridge, and Gradient Descent's update rule
+      from first principles, not just recite formulas</li>
+      <li>Can explain <i>why</i> for every major concept, not just <i>what</i>
+      — this is what separates memorization from real interview signal</li>
+      <li>Before interviews: rehearse the 4 corrected explanations above out
+      loud until they come out clean, unprompted, on the first try</li>
+    </ul>
+  </div>
+
+  <h2>Week 2 Roadmap</h2>
+  <div class="box green">
+    Week 1 built the linear-algebra + optimization foundation. Week 2 begins
+    building on top of it — new topic starts Day 9, staying inside the shared
+    foundation phase (Weeks 1–7) before the Week 8+ specialization decision.
+    Exact Day 9 topic and objectives will be confirmed at the start of that
+    session, following the same progress-tracking format.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Week 1 Master Cheat Sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Vector</td><td>list of numbers OR an arrow — same object, two lenses</td></tr>
+      <tr><td>Dot product</td><td>multiply matching positions, sum → raw agreement, size-biased</td></tr>
+      <tr><td>Cosine similarity</td><td>dot ÷ (norm×norm) → pure direction, -1 to +1</td></tr>
+      <tr><td>Matmul rule</td><td>cols_A == rows_B; output (rows_A, cols_B)</td></tr>
+      <tr><td>NN layer</td><td>output = ReLU((x @ W) + b)</td></tr>
+      <tr><td>Transpose</td><td>(r,c) → (c,r); flips grouping principle</td></tr>
+      <tr><td>Inverse</td><td>A @ A⁻¹ = I; only exists if det(A) ≠ 0, only for square matrices</td></tr>
+      <tr><td>Normal Equation</td><td>w = (XᵀX)⁻¹ Xᵀy — exact, O(n³), best for few features</td></tr>
+      <tr><td>Gradient Descent update</td><td>w_new = w − (lr × gradient); always subtract</td></tr>
+      <tr><td>Feature scaling (GD)</td><td>required — fixes the "canyon," one lr fair in all directions</td></tr>
+      <tr><td>Ridge</td><td>w = (XᵀX + λI)⁻¹ Xᵀy — smooth shrink, rarely exact zero</td></tr>
+      <tr><td>Lasso</td><td>soft-thresholding, coordinate descent — can delete features to exact 0</td></tr>
+      <tr><td>Feature scaling (Lasso)</td><td>required — fixed threshold vs per-feature rho_j, else unfair winner</td></tr>
+      <tr><td>Elastic Net</td><td>λ1|w| + λ2w² — Lasso's sparsity + Ridge's fairness (not built yet)</td></tr>
+      <tr><td>Golden thread</td><td>every day's tool = next day's ingredient, nothing isolated</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Week 1 Complete — 7/84 days, foundations locked in</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-01 / day-08-week1-review · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
