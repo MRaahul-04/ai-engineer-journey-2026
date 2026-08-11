@@ -172,7 +172,7 @@ matrix = np.array([
 ])
 
 similarity = np.dot(matrix, matrix.T)
-print(similarity)
+print("Sim", similarity)
 
 #Homework_2
 
