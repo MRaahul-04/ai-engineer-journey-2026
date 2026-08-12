@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 10 Notes — Classification Metrics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle { font-size: 18px; color: #4a6b3a; margin-bottom: 25px; }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label { font-family: 'Caveat', cursive; font-weight: 700; font-size: 22px; }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .highlight { background: #fce27a; padding: 0 4px; border-radius: 3px; }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  td, th { border: 1.5px dashed #a08a5e; padding: 8px 10px; text-align: left; font-size: 17px; }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note { margin-top: 20px; font-size: 15px; color: #6a6a6a; font-style: italic; }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+  .qa { border-left: 4px solid #6b4fa0; padding: 6px 14px; margin: 10px 0; background: #f8f6fd; }
+  .qa .q { font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; color: #4a3372; }
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr;
+    gap: 2px;
+    margin: 10px 0;
+    font-size: 16px;
+  }
+  .matrix-grid div {
+    border: 1.5px solid #7a5c3e;
+    padding: 10px;
+    text-align: center;
+    background: #fffdf5;
+  }
+  .matrix-grid .head { background: #eee5cf; font-family: 'Caveat', cursive; font-size: 19px; color: #1f5fa5; }
+  .matrix-grid .tp { background: #e3f3d9; font-weight: 700; }
+  .matrix-grid .fp { background: #fde3e3; font-weight: 700; }
+  .matrix-grid .fn { background: #fde3e3; font-weight: 700; }
+  .matrix-grid .tn { background: #e3f3d9; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 10 — Classification Metrics</h1>
+  <div class="subtitle">Week 2 · Day 10 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Day 9's model scored <span class="highlight">90% accuracy</span> — sounds great,
+    tells you almost nothing. Today: open up that single number into 4 numbers
+    that reveal <i>what kind</i> of mistake a model makes, not just how many.
+    Motivated entirely by Day 9's own real miss (hours=6).
+  </div>
+
+  <h2>The 4 outcomes — Confusion Matrix</h2>
+  <div class="box orange">
+    Every prediction lands in exactly one of 4 boxes: predicted (yes/no) × actual (yes/no).
+    <div class="matrix-grid">
+      <div class="head"></div>
+      <div class="head">Actual: YES (1)</div>
+      <div class="head">Actual: NO (0)</div>
+      <div class="head">Predicted: YES (1)</div>
+      <div class="tp">True Positive (TP)<br>"correctly caught"</div>
+      <div class="fp">False Positive (FP)<br>"false alarm" ← hours=6</div>
+      <div class="head">Predicted: NO (0)</div>
+      <div class="fn">False Negative (FN)<br>"missed detection"</div>
+      <div class="tn">True Negative (TN)<br>"correctly cleared"</div>
+    </div>
+    <b>hours=6 diagnosed:</b> predicted PASS(1), actual FAIL(0) → predicted YES / actual NO
+    → lands squarely in the <span class="highlight">False Positive</span> box.
+  </div>
+
+  <h2>Day 9's model, fully broken down</h2>
+  <div class="box green">
+<pre>predictions: [0 0 0 0 0 1 1 1 1 1]
+actual:      [0 0 0 0 0 0 1 1 1 1]
+              index 0-4: TN (5)
+              index 5 (hours=6): FP (1)  ← the false alarm
+              index 6-9: TP (4)
+              FN = 0  (never once missed a real passer)</pre>
+    <b>Total = 4+1+0+5 = 10 ✓.</b> Accuracy = (TP+TN)/total = 9/10 = 90% — but
+    accuracy alone can't tell you the model's "personality": here, it's
+    <span class="highlight">trigger-happy on PASS</span> (1 FP, 0 FN) — it never
+    misses a real passer, but occasionally cries "pass" too eagerly.
+  </div>
+
+  <h2>Precision — "when I say YES, am I right?"</h2>
+  <div class="box purple">
+<pre>Precision = TP / (TP + FP)
+          = 4 / (4 + 1) = 0.80</pre>
+    Only cares about the <b>predicted-YES column</b>. Punished by False Positives.
+    A high-precision model rarely cries wolf.
+  </div>
+
+  <h2>Recall — "of everyone who's really YES, how many did I catch?"</h2>
+  <div class="box pink">
+<pre>Recall = TP / (TP + FN)
+       = 4 / (4 + 0) = 1.00</pre>
+    Only cares about the <b>actual-YES row</b>. Punished by False Negatives.
+    A high-recall model rarely lets a real case slip through.
+  </div>
+
+  <h2>The Precision ↔ Recall tradeoff — proven mechanically</h2>
+  <div class="bug">
+    Traced a single borderline student, score=0.35, actual=PASS, through two thresholds:
+    <ul>
+      <li><b>Threshold 0.5:</b> 0.35 &lt; 0.5 → predicted FAIL. predicted=0, actual=1 → <b>FN</b>.</li>
+      <li><b>Threshold 0.3:</b> 0.35 &gt; 0.3 → predicted PASS. predicted=1, actual=1 → <b>TP</b>.</li>
+    </ul>
+    Lowering the threshold moved this student <span class="highlight">FN → TP</span>.
+    Since Recall = TP/(TP+FN), that conversion makes <b>Recall go up</b>.
+    But the same "eager to say pass" behavior raises the risk of new False Positives too
+    → <b>Precision typically goes down</b>. Raising the threshold does the exact reverse.
+    <br><br>
+    <b>This is the real substance of the tradeoff</b> — not an abstract rule, but a direct,
+    mechanical consequence of moving Day 9's hardcoded <code>>= 0.5</code> cutoff in
+    <code>predict()</code>.
+  </div>
+
+  <h2>F1-score — harmonic mean, not plain average</h2>
+  <div class="box green">
+<pre>F1 = 2 × (Precision × Recall) / (Precision + Recall)
+   = 2 × (0.80 × 1.00) / (0.80 + 1.00) = 0.8889</pre>
+    <b>Why harmonic mean, not (P+R)/2:</b> plain average lets one great number hide
+    one terrible number. Extreme proof — Precision=1.00, Recall=0.01 (nearly useless model):
+    <pre>Plain average: (1.00+0.01)/2   = 0.505   <- looks "so-so"
+Harmonic mean: 2×(1.00×0.01)/(1.00+0.01) ≈ 0.0198  <- correctly screams "broken"</pre>
+    <span class="highlight">F1's punishment scales with the GAP between P and R, not their
+    absolute size.</span> Close together (like 0.80 & 1.00) → F1 ≈ average (barely punished).
+    Far apart → F1 collapses toward the smaller value (heavily punished).
+  </div>
+
+  <h2>ConfusionMatrix + Metrics — built from scratch</h2>
+  <div class="box pink">
+<pre>y_actual = np.array([0,0,0,0,0,0,1,1,1,1])
+y_pred   = np.array([0,0,0,0,0,1,1,1,1,1])
+
+TP = np.sum((y_pred == 1) & (y_actual == 1))   # 4
+FP = np.sum((y_pred == 1) & (y_actual == 0))   # 1
+FN = np.sum((y_pred == 0) & (y_actual == 1))   # 0
+TN = np.sum((y_pred == 0) & (y_actual == 0))   # 5
+
+precision = TP / (TP + FP)
+recall    = TP / (TP + FN)
+f1        = 2 * (precision * recall) / (precision + recall)</pre>
+    Verified exactly against sklearn: <code>precision_score</code>,
+    <code>recall_score</code>, <code>f1_score</code> all matched to full precision
+    (0.8, 1.0, 0.8888888888888888).
+  </div>
+
+  <h2>The sklearn confusion_matrix gotcha</h2>
+  <div class="bug">
+    Hand-built layout: <b>rows = predicted, columns = actual</b>, positive class first.<br>
+    sklearn's <code>confusion_matrix()</code> layout: <b>rows = actual, columns = predicted</b>,
+    ordered by label ascending (0 first, then 1) — the reverse convention.
+    <pre>sklearn output: [[5 1]
+                 [0 4]]
+
+decoded:            Predicted:0   Predicted:1
+        Actual:0     5 (TN)        1 (FP)
+        Actual:1     0 (FN)        4 (TP)</pre>
+    Matches the hand-built TN=5, FP=1, FN=0, TP=4 exactly — just laid out differently.
+    <span class="highlight">Always check axis order before trusting raw numbers in a new
+    codebase</span> — a flipped read silently swaps precision and recall.
+  </div>
+
+  <h2>Choosing the right metric — context decides, not a universal rule</h2>
+  <div class="box orange">
+    <b>Worked scenario:</b> serious disease screening test. Two possible mistakes:
+    <ul>
+      <li><b>False Positive</b> (healthy person flagged sick) → extra follow-up tests, worry,
+      maybe unnecessary procedure. Unpleasant but <i>recoverable</i>.</li>
+      <li><b>False Negative</b> (sick person flagged healthy) → disease goes untreated,
+      undetected until far more advanced. <i>Potentially irreversible.</i></li>
+    </ul>
+    Since FN is the far more dangerous mistake here, real screening tests are deliberately
+    tuned toward <span class="highlight">high Recall over high Precision</span> — catch
+    every real case, tolerate more false alarms, and rely on a second confirmatory test
+    to filter those alarms out afterward.
+    <br><br>
+    <b>The real lesson:</b> there's no universally "correct" metric to optimize — it depends
+    entirely on which error type is more costly in the specific context. Yesterday's model,
+    read the same way: 0 FN / 1 FP means it would already be well-suited to a
+    "flag for extra tutoring" use case, where missing a struggling student is worse than
+    one extra unnecessary check-in.
+  </div>
+
+  <h2>Interview questions — plain-language answers</h2>
+  <div class="qa">
+    <div class="q">Q1. Why isn't accuracy enough on its own?</div>
+    Accuracy treats all 4 confusion-matrix boxes as equally "wrong" — it can't reveal
+    whether a model tends to false-alarm or tends to miss real cases, and those two
+    failure modes usually carry very different real-world costs.
+  </div>
+  <div class="qa">
+    <div class="q">Q2. Why does lowering the classification threshold raise Recall but usually lower Precision?</div>
+    A lower threshold makes the model say "yes" more easily. That rescues borderline
+    real-positives from being missed (FN→TP, raising Recall), but the same increased
+    eagerness also raises the chance of falsely flagging real negatives (more FP,
+    lowering Precision). It's a direct mechanical tradeoff, not a coincidence.
+  </div>
+  <div class="qa">
+    <div class="q">Q3. Why is F1 a harmonic mean instead of a simple average?</div>
+    A simple average lets one strong score mask one very weak score (e.g. P=1.00,
+    R=0.01 averages to a misleadingly "okay" 0.505). The harmonic mean is dominated
+    by the smaller of the two numbers, so it only stays high when both precision and
+    recall are genuinely strong together.
+  </div>
+  <div class="qa">
+    <div class="q">Q4. When would you prioritize Recall over Precision, or vice versa?</div>
+    Whenever a False Negative is more costly than a False Positive (e.g. disease
+    screening, fraud detection), prioritize Recall. Whenever a False Positive is more
+    costly (e.g. spam filters blocking real emails, or a criminal conviction system),
+    prioritize Precision. The decision comes from the real-world cost of each error type,
+    not from the math itself.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Confusion Matrix</td><td>4 boxes: TP, FP, FN, TN — every prediction lands in exactly one</td></tr>
+      <tr><td>True Positive (TP)</td><td>predicted YES, actual YES — correctly caught</td></tr>
+      <tr><td>False Positive (FP)</td><td>predicted YES, actual NO — false alarm</td></tr>
+      <tr><td>False Negative (FN)</td><td>predicted NO, actual YES — missed detection</td></tr>
+      <tr><td>True Negative (TN)</td><td>predicted NO, actual NO — correctly cleared</td></tr>
+      <tr><td>Accuracy</td><td>(TP+TN)/total — hides which direction the model leans</td></tr>
+      <tr><td>Precision</td><td>TP/(TP+FP) — "when I say yes, am I right?" punished by FP</td></tr>
+      <tr><td>Recall</td><td>TP/(TP+FN) — "did I catch every real yes?" punished by FN</td></tr>
+      <tr><td>Precision-Recall tradeoff</td><td>lower threshold → Recall↑, Precision↓ (and reverse) — mechanical, not abstract</td></tr>
+      <tr><td>F1-score</td><td>2×(P×R)/(P+R) — harmonic mean, punishes imbalance between P and R</td></tr>
+      <tr><td>Why harmonic not plain mean</td><td>plain average lets a high score hide a low one; harmonic mean can't be fooled that way</td></tr>
+      <tr><td>sklearn confusion_matrix layout</td><td>rows=actual, cols=predicted, ascending label order — opposite of naive hand layout</td></tr>
+      <tr><td>Which metric to prioritize</td><td>depends on real-world cost of FP vs FN in the specific context, not a fixed rule</td></tr>
+      <tr><td>High-recall use case</td><td>disease screening — missing a real case is far worse than a false alarm</td></tr>
+      <tr><td>High-precision use case</td><td>spam filtering / convictions — a false alarm is far worse than a miss</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 10 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-02 / day-10-classification-metrics · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
