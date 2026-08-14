@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 11 Notes — ROC Curve &amp; AUC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle { font-size: 18px; color: #4a6b3a; margin-bottom: 25px; }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label { font-family: 'Caveat', cursive; font-weight: 700; font-size: 22px; }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .highlight { background: #fce27a; padding: 0 4px; border-radius: 3px; }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  td, th { border: 1.5px dashed #a08a5e; padding: 8px 10px; text-align: left; font-size: 17px; }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note { margin-top: 20px; font-size: 15px; color: #6a6a6a; font-style: italic; }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+  .fix {
+    border: 2px dashed #4a7d3a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0 16px 0;
+    background: #f2f9ec;
+    font-size: 16px;
+  }
+  .qa { border-left: 4px solid #6b4fa0; padding: 6px 14px; margin: 10px 0; background: #f8f6fd; }
+  .qa .q { font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; color: #4a3372; }
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr;
+    gap: 2px;
+    margin: 10px 0;
+    font-size: 16px;
+  }
+  .matrix-grid div {
+    border: 1.5px solid #7a5c3e;
+    padding: 10px;
+    text-align: center;
+    background: #fffdf5;
+  }
+  .matrix-grid .head { background: #eee5cf; font-family: 'Caveat', cursive; font-size: 19px; color: #1f5fa5; }
+  .matrix-grid .tp { background: #e3f3d9; font-weight: 700; }
+  .matrix-grid .fp { background: #fde3e3; font-weight: 700; }
+  .matrix-grid .fn { background: #fde3e3; font-weight: 700; }
+  .matrix-grid .tn { background: #e3f3d9; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 11 — ROC Curve &amp; AUC</h1>
+  <div class="subtitle">Week 2 · Day 11 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Day 10 sliced one borderline student's threshold from 0.5 to 0.3 and watched
+    Precision/Recall trade against each other — a single before/after snapshot.
+    Today: <span class="highlight">sweep the threshold across every possible value</span>,
+    plot the resulting curve, and compress the whole tradeoff into one number (AUC).
+  </div>
+
+  <h2>TPR — same formula as Recall, new name</h2>
+  <div class="box green">
+    <pre>TPR = TP / (TP + FN)</pre>
+    Identical to Day 10's Recall. Row-based: only looks at the
+    <span class="highlight">actual-YES row</span> — "of all real positives, how many did I catch?"
+  </div>
+
+  <h2>FPR — Recall's mirror on the negative side</h2>
+  <div class="box orange">
+    <pre>FPR = FP / (FP + TN)</pre>
+    Also row-based, but on the <span class="highlight">actual-NO row</span> —
+    "of all real negatives, how many did I wrongly flag as positive?"
+    <div class="matrix-grid">
+      <div class="head"></div>
+      <div class="head">Actual: YES</div>
+      <div class="head">Actual: NO</div>
+      <div class="head">Predicted: YES</div>
+      <div class="tp">TP</div>
+      <div class="fp">FP</div>
+      <div class="head">Predicted: NO</div>
+      <div class="fn">FN</div>
+      <div class="tn">TN</div>
+    </div>
+    TPR uses the left column's row-total (TP+FN). FPR uses the right column's
+    row-total (FP+TN). Neither touches Precision's column-based view at all.
+  </div>
+
+  <h2>Why TPR and FPR move together</h2>
+  <div class="box purple">
+    Raising the threshold can only <b>shrink</b> the "Predicted: YES" group — anyone who clears
+    a higher bar would also clear a lower one, never the reverse. Both TP and FP live inside
+    that same shrinking group. Meanwhile <code>TP+FN</code> and <code>FP+TN</code> are both
+    <span class="highlight">fixed dataset totals</span> (they don't depend on threshold at all).
+    So as threshold rises: TP can only shrink → TPR falls. FP can only shrink → FPR falls.
+    <b>Same mechanism, both metrics move in the same direction.</b>
+  </div>
+
+  <h2>The two extremes — proven by hand</h2>
+  <div class="box pink">
+<pre>threshold = 1.0 (impossibly strict, nobody predicted YES)
+  TP=0, FP=0, FN=4, TN=6  ->  TPR=0, FPR=0   <- point (0,0)
+
+threshold = 0.0 (no filter, everybody predicted YES)
+  TP=4, FP=6, FN=0, TN=0  ->  TPR=1, FPR=1   <- point (1,1)</pre>
+    Every real threshold in between produces a point somewhere along the path
+    from (0,0) to (1,1). Connecting all of them, swept continuously, traces the
+    <b>ROC curve</b>.
+  </div>
+
+  <h2>Reading the plot</h2>
+  <div class="box">
+    <ul>
+      <li><b>Diagonal line</b> (FPR=TPR always) = random guessing, zero information. Covers
+      exactly half the unit square → area = 0.5.</li>
+      <li><b>Bulging toward top-left</b> = catching real positives before being forced into
+      false alarms → better model.</li>
+      <li><b>Hugging the top-left corner</b> (straight up the left edge, then flat across the
+      top) = the perfect-classifier path → covers the <i>entire</i> unit square → area = 1.0.</li>
+      <li><b>Below the diagonal</b> = worse than random — usually a sign something is inverted.</li>
+    </ul>
+  </div>
+
+  <h2>AUC — area under the curve</h2>
+  <div class="box green">
+    <pre>AUC = 0.5   ->  no better than a coin flip
+AUC = 1.0   ->  perfect separation at some threshold
+AUC &lt; 0.5   ->  worse than random (likely inverted labels/predictions)</pre>
+    <b>Intuitive meaning:</b> AUC is the probability that the model ranks a randomly
+    chosen true positive <i>higher</i> than a randomly chosen true negative — a
+    statement about ranking quality, not about any single threshold's accuracy.
+  </div>
+
+  <h2>Building it from scratch</h2>
+  <div class="box orange">
+<pre>def compute_roc_point(y_actual, probs, threshold):
+    predicted = (probs >= threshold).astype(int)
+    TP = np.sum((predicted == 1) & (y_actual == 1))
+    FP = np.sum((predicted == 1) & (y_actual == 0))
+    FN = np.sum((predicted == 0) & (y_actual == 1))
+    TN = np.sum((predicted == 0) & (y_actual == 0))
+    TPR = TP / (TP + FN)
+    FPR = FP / (FP + TN)
+    return FPR, TPR
+
+thresholds = np.linspace(0, 1, 21)
+roc_points = [compute_roc_point(y_actual, probs, t) for t in thresholds]</pre>
+    Swept 21 thresholds across a near-perfectly-separable 1-feature dataset.
+    TPR hit 1.0 immediately and stayed there while FPR was still climbing from 0 —
+    the visual signature of a strong classifier.
+  </div>
+
+  <h2>The sorting bug — real debugging, not just theory</h2>
+  <div class="bug">
+    <b>First attempt</b> sorted points by FPR alone before integrating with
+    <code>np.trapezoid</code>:
+    <pre>order = np.argsort(fprs)   # BUG: unstable when FPR has ties</pre>
+    Result: <b>AUC = 0.9286</b> instead of the true value. Many thresholds tied at
+    FPR=0.000, and sorting by FPR alone left their TPR values in arbitrary order —
+    the trapezoid rule then zig-zagged between out-of-order points instead of
+    tracing the real (monotonic) curve, silently losing area.
+  </div>
+  <div class="fix">
+    <b>Fix:</b> sort by <code>threshold</code> instead (guaranteed no ties, since
+    every threshold in the sweep is unique) — this naturally preserves the correct
+    monotonic TPR order within every FPR tie group.
+    <pre>order = np.argsort(thresholds)[::-1]
+fprs_sorted = np.array(fprs)[order]
+tprs_sorted = np.array(tprs)[order]
+auc_fixed = np.trapezoid(tprs_sorted, fprs_sorted)   # -> 1.0000, matches sklearn exactly</pre>
+    <span class="highlight">Lesson: never sort multi-column data by a column that can
+    have duplicates unless you add a tiebreaker — sort by the unique column instead.</span>
+  </div>
+
+  <h2>NumPy 2.0 gotcha</h2>
+  <div class="bug">
+    <code>np.trapz</code> was <b>removed</b> in NumPy 2.0, renamed to
+    <code>np.trapezoid</code>. A reminder that library APIs shift between when
+    material is written and when it's actually run — always check the error
+    message rather than assuming the code itself is wrong.
+  </div>
+
+  <h2>Verified against sklearn</h2>
+  <div class="box pink">
+<pre>from sklearn.metrics import roc_curve, roc_auc_score
+fpr_sk, tpr_sk, thresholds_sk = roc_curve(y_actual, probs)
+auc_sk = roc_auc_score(y_actual, probs)</pre>
+    sklearn only generates points at the <i>actual unique probability values</i>
+    (not an arbitrary evenly-spaced grid) — far fewer points (4 vs our 21), but
+    exact at every real transition. Final result after the sorting fix:
+    <pre>Scratch AUC (fixed):  1.0000
+sklearn AUC:           1.0000   ✓ exact match</pre>
+  </div>
+
+  <h2>Interview questions — plain-language answers</h2>
+  <div class="qa">
+    <div class="q">Q1. What's the difference between Recall and TPR?</div>
+    Nothing — identical formula, <code>TP/(TP+FN)</code>. Recall is the name used
+    in Precision/Recall context; TPR is the name used in ROC/AUC context.
+  </div>
+  <div class="qa">
+    <div class="q">Q2. Why does FPR use FP/(FP+TN) instead of FP/(FP+TP)?</div>
+    FPR is row-based like Recall/TPR — it only looks at people who are actually
+    negative (the FP+TN row): "of all real NOs, how many did I wrongly flag?"
+    FP/(FP+TP) would be a column-based view, which isn't what FPR measures.
+  </div>
+  <div class="qa">
+    <div class="q">Q3. Why do TPR and FPR always move in the same direction as threshold changes?</div>
+    Both TP and FP live in the same "Predicted: YES" group, which can only shrink
+    as threshold rises. Since TP+FN and FP+TN are both fixed dataset totals,
+    shrinking TP shrinks TPR and shrinking FP shrinks FPR — same underlying lever.
+  </div>
+  <div class="qa">
+    <div class="q">Q4. What does AUC actually mean, intuitively?</div>
+    The probability the model ranks a randomly chosen true positive higher than a
+    randomly chosen true negative. 0.5 = coin flip, 1.0 = always ranks correctly.
+  </div>
+  <div class="qa">
+    <div class="q">Q5. Why did the from-scratch AUC break at first, and what's the real lesson?</div>
+    <code>np.argsort()</code> on one column doesn't handle ties safely — sorting by
+    FPR alone scrambled TPR order within tie groups, corrupting the trapezoidal
+    area. Fix: sort by a column guaranteed unique (threshold) instead. Lesson:
+    never sort multi-column data by a column with possible duplicates unless a
+    tiebreaker is added.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>TPR</td><td>TP/(TP+FN) — identical to Recall, ROC-context name</td></tr>
+      <tr><td>FPR</td><td>FP/(FP+TN) — Recall's mirror on the actual-NO row</td></tr>
+      <tr><td>Why TPR/FPR move together</td><td>both driven by the same shrinking/growing "Predicted:YES" group</td></tr>
+      <tr><td>Threshold=1.0 point</td><td>(FPR=0, TPR=0) — bottom-left corner</td></tr>
+      <tr><td>Threshold=0.0 point</td><td>(FPR=1, TPR=1) — top-right corner</td></tr>
+      <tr><td>ROC curve</td><td>path traced by (FPR,TPR) as threshold sweeps 1.0 -> 0.0</td></tr>
+      <tr><td>Diagonal line</td><td>random guessing, AUC=0.5</td></tr>
+      <tr><td>Top-left-hugging curve</td><td>strong classifier, AUC near 1.0</td></tr>
+      <tr><td>AUC</td><td>area under ROC curve; probability of correctly ranking a random pos above a random neg</td></tr>
+      <tr><td>np.trapezoid</td><td>trapezoidal-rule integration (replaces removed np.trapz in NumPy 2.0)</td></tr>
+      <tr><td>Sorting bug</td><td>sorting by a tie-prone column (FPR) scrambles paired values — sort by unique column (threshold) instead</td></tr>
+      <tr><td>sklearn roc_curve</td><td>uses actual unique probability values as thresholds, not an arbitrary grid</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 11 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-02 / day-11-roc-curve-auc · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
