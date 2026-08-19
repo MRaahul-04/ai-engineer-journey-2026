@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 12 Notes — Softmax Regression</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle { font-size: 18px; color: #4a6b3a; margin-bottom: 25px; }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label { font-family: 'Caveat', cursive; font-weight: 700; font-size: 22px; }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .highlight { background: #fce27a; padding: 0 4px; border-radius: 3px; }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  td, th { border: 1.5px dashed #a08a5e; padding: 8px 10px; text-align: left; font-size: 17px; }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note { margin-top: 20px; font-size: 15px; color: #6a6a6a; font-style: italic; }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+  .fix {
+    border: 2px dashed #4a7d3a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0 16px 0;
+    background: #f2f9ec;
+    font-size: 16px;
+  }
+  .qa { border-left: 4px solid #6b4fa0; padding: 6px 14px; margin: 10px 0; background: #f8f6fd; }
+  .qa .q { font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; color: #4a3372; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 12 — Softmax Regression</h1>
+  <div class="subtitle">Week 2 · Day 12 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Day 9's sigmoid answers exactly one yes/no question. Today: what happens
+    with 3+ classes (Fail / Pass / Distinction)? Sigmoid doesn't generalize on
+    its own — <span class="highlight">softmax is the fix</span>, and it turns
+    out sigmoid was always just softmax's 2-class special case all along.
+  </div>
+
+  <h2>Why one-vs-rest sigmoids break</h2>
+  <div class="box orange">
+    Train 3 independent sigmoids, one per class. For a student with hours=7:
+    <pre>Sigmoid A (Fail?):        0.05
+Sigmoid B (Pass?):        0.62
+Sigmoid C (Distinction?): 0.51
+
+Sum = 0.05 + 0.62 + 0.51 = 1.18   <- should be exactly 1.00</pre>
+    <b>Root cause:</b> each sigmoid is trained independently, with zero
+    awareness the other classes even exist. No shared constraint forces them
+    onto one 100% pie. Also causes ambiguous overlaps (Pass 0.62 and
+    Distinction 0.51 both say "probably me").
+  </div>
+
+  <h2>Building Softmax from first principles</h2>
+  <div class="box green">
+    Need: turn raw scores into numbers that (1) are always positive, (2) sum
+    to exactly 1. Naive division on raw <code>z</code> breaks (negatives
+    explode). <b>Steal Day 9's trick</b> — exponentiate first
+    (<code>e^z</code> is always positive), then normalize:
+    <pre>softmax(z_i) = e^(z_i) / Σ e^(z_j)     (sum over all classes j)
+
+z = [-2.0, 1.5, 1.2]
+e^z = [0.135, 4.482, 3.320]
+sum = 7.937
+p = [0.017, 0.565, 0.418]     <- sums to exactly 1.000 ✓</pre>
+    Dividing by the shared sum forces every class to compete for the same
+    fixed pie — a bigger score for one class steals share from the others,
+    automatically.
+  </div>
+
+  <h2>Softmax IS sigmoid — proven, not assumed</h2>
+  <div class="box purple">
+    Shrink to 2 classes and simplify algebraically:
+    <pre>p_Pass = e^(z_Pass) / (e^(z_Fail) + e^(z_Pass))
+       = 1 / (1 + e^(-(z_Pass - z_Fail)))    <- exactly sigmoid!</pre>
+    Sigmoid was never a separate algorithm — it's softmax's exact 2-class
+    case, using the <i>difference</i> between two classes' raw scores as its
+    single <code>z</code>.
+  </div>
+
+  <h2>Numerical stability — the overflow bug, live</h2>
+  <div class="bug">
+    <pre>z_big = np.array([1000, 1, 1])
+np.exp(z_big)   -> RuntimeWarning: overflow encountered in exp -> inf</pre>
+    <code>inf / inf</code> → <code>nan</code>. Real trap with real neural
+    network logits, not hypothetical.
+  </div>
+  <div class="fix">
+    <b>Fix — subtract the max first.</b> Proven algebraically that this never
+    changes the output (the constant cancels top and bottom):
+    <pre>def softmax(z):
+    z_shifted = z - np.max(z)
+    exp_z = np.exp(z_shifted)
+    return exp_z / np.sum(exp_z)
+
+softmax([1000, 1, 1]) -> [1., 0., 0.]   <- no overflow, no nan</pre>
+  </div>
+
+  <h2>Batch version — the broadcasting bug, live</h2>
+  <div class="bug">
+    <pre>Z = np.array([[-2.0, 1.5, 1.2], [3.0, 0.5, -1.0]])   # shape (2,3)
+maxes = np.max(Z, axis=1)                             # shape (2,)
+Z - maxes
+-> ValueError: operands could not be broadcast together with shapes (2,3) (2,)</pre>
+    Day 1's exact lesson again: <code>maxes</code> lost its dimension when
+    reduced. NumPy can't tell if that <code>2</code> means rows or columns.
+  </div>
+  <div class="fix">
+    <b>Fix — <code>keepdims=True</code>.</b> Keeps the reduced axis as size 1
+    instead of dropping it, so shapes line up (3 vs 1 broadcasts, 2 vs 2 matches):
+    <pre>def softmax_batch(Z):
+    Z_shifted = Z - np.max(Z, axis=1, keepdims=True)
+    exp_Z = np.exp(Z_shifted)
+    return exp_Z / np.sum(exp_Z, axis=1, keepdims=True)</pre>
+    Same <code>keepdims=True</code> needed for the denominator sum too — each
+    student's row must divide by <i>that row's own</i> sum, not a global one.
+  </div>
+
+  <h2>One-hot encoding — a one-line trick</h2>
+  <div class="box pink">
+    <code>np.eye(n_classes)</code>'s row <code>k</code> IS already the
+    one-hot vector for class <code>k</code> (1 at its own position, 0
+    elsewhere — literally the identity matrix's definition). So indexing the
+    identity matrix with the whole label array one-hot-encodes everything at once:
+    <pre>def one_hot(y, n_classes):
+    return np.eye(n_classes)[y]
+
+one_hot([0,1,2,1,0], 3)
+-> [[1,0,0], [0,1,0], [0,0,1], [0,1,0], [1,0,0]]</pre>
+  </div>
+
+  <h2>Categorical Cross-Entropy — same self-selecting trick as Day 9</h2>
+  <div class="box orange">
+    <pre>y_onehot * log(p):
+[0,1,0]·log([0.017,0.565,0.418]) -> [0, -0.571, 0]   <- zeros kill wrong terms
+sum -> -0.571, negate -> 0.571                       <- matches Day 9's pattern exactly
+
+CCE = -(1/n) · Σ_samples Σ_classes  y_i · log(p_i)</pre>
+    Collapses exactly to Day 9's Binary Cross-Entropy when there are only 2
+    classes — same mechanism, just N slots instead of 2.
+  </div>
+
+  <h2>The log(0) landmine</h2>
+  <div class="bug">
+    <code>np.log(p)</code> runs on the WHOLE matrix before multiplying by
+    <code>y_onehot</code>. If any <code>p</code> entry is exactly 0 (possible
+    after stable softmax), <code>log(0) = -inf</code>, and
+    <code>0 * (-inf) = nan</code> — NOT the 0 you'd expect. One nan poisons
+    the entire sum.
+  </div>
+  <div class="fix">
+    <b>Fix — clip probabilities away from the exact edges:</b>
+    <pre>def categorical_cross_entropy(y_onehot, p, epsilon=1e-15):
+    p_clipped = np.clip(p, epsilon, 1 - epsilon)
+    n_samples = y_onehot.shape[0]
+    return -np.sum(y_onehot * np.log(p_clipped)) / n_samples</pre>
+    Same category of fix as Day 9's asymptotic sigmoid (never touches exactly
+    0 or 1) — applied defensively here for floating-point edge cases.
+  </div>
+
+  <h2>The gradient — Day 9's cancellation strikes again</h2>
+  <div class="box green">
+    Because softmax IS sigmoid generalized, the same chain-rule cancellation
+    happens:
+    <pre>Day 9  (Logistic Reg): gradient = Xᵀ(predictions - y)
+Day 12 (Softmax Reg):  gradient = Xᵀ(predictions - y_onehot)</pre>
+    <b>Shape traced by hand:</b> <code>X_b.T</code> is <code>(3,5)</code>,
+    <code>(predictions - y_onehot)</code> is <code>(5,3)</code> → matmul
+    gives <code>(3,3)</code> — matches <code>W</code>'s own shape
+    <code>(n_features+1, n_classes)</code> exactly, as it must (gradient
+    updates <code>W</code> directly).
+  </div>
+
+  <h2>SoftmaxRegressionScratch — the full class</h2>
+  <div class="box pink">
+<pre>class SoftmaxRegressionScratch:
+    def __init__(self, learning_rate=0.1, n_iterations=1000):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.loss_history = []
+
+    def fit(self, X, y, n_classes):
+        ones = np.ones((X.shape[0], 1))
+        X_b = np.hstack([ones, X])
+        y_onehot = np.eye(n_classes)[y]
+        self.W = np.zeros((X_b.shape[1], n_classes))
+
+        for i in range(self.n_iterations):
+            Z = X_b @ self.W
+            predictions = softmax_batch(Z)
+            gradient = X_b.T @ (predictions - y_onehot) / X_b.shape[0]
+            self.W = self.W - self.learning_rate * gradient
+            loss = categorical_cross_entropy(y_onehot, predictions)
+            self.loss_history.append(loss)
+        return self
+
+    def predict_proba(self, X):
+        ones = np.ones((X.shape[0], 1))
+        X_b = np.hstack([ones, X])
+        return softmax_batch(X_b @ self.W)
+
+    def predict(self, X):
+        return np.argmax(self.predict_proba(X), axis=1)</pre>
+    <code>np.argmax(..., axis=1)</code> — per student's row, returns the
+    <i>index</i> of the largest probability (the winning class).
+  </div>
+
+  <h2>The "expected first loss" sanity check</h2>
+  <div class="box purple">
+    At <code>W = zeros</code>, every <code>z=0</code>, so
+    <code>softmax([0,0,0]) = [1/3, 1/3, 1/3]</code> for every student
+    regardless of true label. First loss = <code>-log(1/3) = 1.0986</code> —
+    <b>always</b>, for zero-init softmax. General rule:
+    <span class="highlight"><code>-log(1/n_classes)</code> is the expected
+    starting loss</span> — a reusable "is training even working" gut-check
+    for any future multi-class problem.
+    <br><br>
+    Confirmed on 9-student clean dataset (hours only, gaps at 3→4, 6→8):
+    first loss=1.0986, final loss=0.1822, predictions 9/9 correct.
+  </div>
+
+  <h2>sklearn verification</h2>
+  <div class="box green">
+<pre>from sklearn.linear_model import LogisticRegression
+sk_model = LogisticRegression().fit(X, labels)   # no multi_class arg needed —
+                                                   # softmax auto-selected by solver
+
+sklearn predictions: [0 0 0 1 1 1 2 2 2]
+Actual:              [0 0 0 1 1 1 2 2 2]          ✓ exact match</pre>
+    <b>Weights differ, predictions don't</b> — same Day 9 story. sklearn's
+    default L2 regularization shrinks weights toward zero:
+    <pre>scratch bias:  6.75    0.5    -7.249
+sklearn bias:  5.099   1.195  -6.294
+scratch hours: -1.613  0.234   1.379
+sklearn hours: -1.094  0.007   1.086</pre>
+    Scratch consistently larger magnitude across the board — expected,
+    unregularized vs regularized, same decision boundary either way.
+  </div>
+
+  <h2>Homework — 2nd feature, ambiguous boundary (mirrors Day 9)</h2>
+  <div class="bug">
+    <b>1-feature model, deliberate traps:</b> hours=6 (practice=9, truly
+    Distinction) and hours=7 (practice=3, truly Pass) — both structurally
+    unsolvable with one monotonic feature, same impossibility as Day 9's
+    hours=6.
+    <pre>1-feature predictions: [0 0 0 1 1 1 2 2 2 2]
+Actual:                 [0 0 0 1 1 2 1 2 2 2]     <- both traps wrong, as predicted</pre>
+  </div>
+  <div class="fix">
+    <b>Add practice_tests_taken, scale (Day 6/9 canyon fix), refit:</b>
+    <pre>X_2feat = np.column_stack([hours, practice])
+X_scaled = (X_2feat - X_2feat.mean(axis=0)) / X_2feat.std(axis=0)
+
+2-feature predictions: [0 0 0 1 1 2 1 2 2 2]
+Actual:                 [0 0 0 1 1 2 1 2 2 2]     ✓ 10/10, both traps resolved
+Final loss: 0.0359</pre>
+    <b>Locked-in lesson:</b> those two points were never noise — they were
+    structurally unsolvable with one feature, full stop. No amount of
+    training or tuning fixes a missing-feature problem; only the right
+    feature does.
+  </div>
+
+  <h2>Interview questions — plain-language answers</h2>
+  <div class="qa">
+    <div class="q">Q1. Why can't you just use sigmoid for 3+ classes?</div>
+    One-vs-rest sigmoids are trained independently with no shared constraint
+    — outputs don't sum to 1 and can produce ambiguous overlaps. A real
+    probability distribution over mutually exclusive classes must sum to
+    exactly 1.00; nothing about independent sigmoids guarantees that.
+  </div>
+  <div class="qa">
+    <div class="q">Q2. What does softmax do, mechanically?</div>
+    Exponentiates every raw score (guaranteeing positivity), then divides
+    each by the sum of all of them — forcing every class to compete for the
+    same fixed 100% pie.
+  </div>
+  <div class="qa">
+    <div class="q">Q3. Is softmax related to sigmoid, or a different algorithm?</div>
+    Sigmoid is softmax's exact 2-class special case — provable algebraically,
+    reduces to <code>1/(1+e^-(z_Pass-z_Fail))</code>.
+  </div>
+  <div class="qa">
+    <div class="q">Q4. Why the "subtract the max" trick?</div>
+    Prevents float overflow on large raw scores (<code>e^large → inf → nan</code>).
+    Provably doesn't change the output — the subtracted constant cancels top
+    and bottom in the softmax formula.
+  </div>
+  <div class="qa">
+    <div class="q">Q5. Why does CCE use y·log(p) instead of squared error?</div>
+    One-hot zeros self-select only the true class's term (no if/else needed),
+    and <code>-log(p)</code> has no ceiling — punishes confident wrongness
+    with unbounded loss, keeping the gradient strong exactly where correction
+    matters most.
+  </div>
+  <div class="qa">
+    <div class="q">Q6. Why is the softmax gradient almost identical to logistic regression's?</div>
+    Same chain-rule cancellation as Day 9, since softmax IS sigmoid
+    generalized — simplifies to <code>Xᵀ(predictions - y_onehot)</code>,
+    only difference being softmax instead of sigmoid and a full weight
+    matrix instead of a vector.
+  </div>
+  <div class="qa">
+    <div class="q">Q7. Does more training fix a wrong prediction from a 1-feature model?</div>
+    Not if the true pattern genuinely can't be traced by one monotonic
+    feature — proven directly in homework, where 2 points stayed wrong
+    regardless of training until a 2nd feature was added.
+  </div>
+  <div class="qa">
+    <div class="q">Q8. Why do scratch and sklearn weights differ even with identical predictions?</div>
+    sklearn's default L2 regularization shrinks weights toward zero (Day 7's
+    Ridge idea, carried into classification) — same decision boundary,
+    different confidence/aggressiveness getting there.
+  </div>
+  <div class="qa">
+    <div class="q">Q9. What does -log(1/n_classes) tell you?</div>
+    The expected loss at zero-initialization, since uniform
+    <code>1/n_classes</code> probabilities come from all-zero raw scores — a
+    reusable "is training working" sanity check for any multi-class problem.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Why one-vs-rest sigmoid fails</td><td>independent sigmoids, no shared constraint → don't sum to 1</td></tr>
+      <tr><td>Softmax formula</td><td>e^(z_i) / Σe^(z_j) — exponentiate then normalize, forces shared 100% pie</td></tr>
+      <tr><td>Softmax vs sigmoid</td><td>sigmoid = softmax's exact 2-class case (provable algebraically)</td></tr>
+      <tr><td>Overflow fix</td><td>subtract max(z) before exponentiating — same output, no inf/nan</td></tr>
+      <tr><td>keepdims=True</td><td>preserves reduced axis as size-1 so broadcasting lines up per-row</td></tr>
+      <tr><td>One-hot via np.eye(n)[y]</td><td>identity matrix's row k IS class k's one-hot vector</td></tr>
+      <tr><td>Categorical Cross-Entropy</td><td>-(1/n)ΣΣ y·log(p) — one-hot zeros self-select the true class's term</td></tr>
+      <tr><td>log(0) landmine</td><td>log(p) runs on whole matrix first → 0×(-inf)=nan, not 0 — clip p first</td></tr>
+      <tr><td>Softmax gradient</td><td>Xᵀ(predictions - y_onehot) — same cancellation as Day 9, W is now a matrix</td></tr>
+      <tr><td>W shape</td><td>(n_features+1, n_classes) — one weight vector per class</td></tr>
+      <tr><td>Expected first loss</td><td>-log(1/n_classes) — universal zero-init sanity check</td></tr>
+      <tr><td>sklearn multi-class</td><td>no multi_class arg needed — auto-selected by solver (lbfgs default)</td></tr>
+      <tr><td>sklearn weight mismatch</td><td>default L2 regularization shrinks weights; predictions still match exactly</td></tr>
+      <tr><td>"Unfixable" 1-feature miss</td><td>softmax is monotonic per feature — can't zigzag without the right added feature</td></tr>
+      <tr><td>np.column_stack</td><td>combines 1-D arrays into 2-D matrix columns, no manual reshape needed</td></tr>
+      <tr><td>np.argmax(p, axis=1)</td><td>per-row index of winning class — how predict() turns probs into labels</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 12 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-02 / day-12-softmax-regression · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
