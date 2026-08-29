@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 13 Notes — Multiclass Metrics &amp; Class Imbalance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle { font-size: 18px; color: #4a6b3a; margin-bottom: 25px; }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label { font-family: 'Caveat', cursive; font-weight: 700; font-size: 22px; }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .highlight { background: #fce27a; padding: 0 4px; border-radius: 3px; }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  td, th { border: 1.5px dashed #a08a5e; padding: 8px 10px; text-align: left; font-size: 16px; }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note { margin-top: 20px; font-size: 15px; color: #6a6a6a; font-style: italic; }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+  .qa { border-left: 4px solid #6b4fa0; padding: 6px 14px; margin: 10px 0; background: #f8f6fd; }
+  .qa .q { font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; color: #4a3372; }
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: 130px 1fr 1fr 1fr;
+    gap: 2px;
+    margin: 10px 0;
+    font-size: 15px;
+  }
+  .matrix-grid div {
+    border: 1.5px solid #7a5c3e;
+    padding: 8px;
+    text-align: center;
+    background: #fffdf5;
+  }
+  .matrix-grid .head { background: #eee5cf; font-family: 'Caveat', cursive; font-size: 17px; color: #1f5fa5; }
+  .matrix-grid .diag { background: #e3f3d9; font-weight: 700; }
+  .matrix-grid .off  { background: #fde3e3; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 13 — Multiclass Metrics &amp; Class Imbalance</h1>
+  <div class="subtitle">Week 2 · Day 13 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Day 10 built precision/recall/F1 for exactly one "positive" class. Day 12
+    gave us 3+ classes. Today: <span class="highlight">run Day 10's toolkit once
+    PER CLASS</span> (each class takes a turn being "positive"), then learn 3
+    different ways to collapse those per-class scores into one number —
+    macro, micro, weighted — each answering a genuinely different question.
+  </div>
+
+  <h2>The trick — one class at a time, everything else becomes "NO"</h2>
+  <div class="box orange">
+    For class <i>c</i>: treat "actual = c" as YES, everything else as NO.
+    Same for predicted. Suddenly it's Day 10's binary world again — just run
+    3 separate times, once per class.
+    <pre>Actual:    [0, 0, 0, 1, 1, 1, 1, 2, 2, 2]
+Predicted: [0, 1, 0, 1, 1, 2, 1, 2, 0, 2]</pre>
+    One wrong prediction touches <b>two</b> classes at once: index 5
+    (actual=1, predicted=2) is simultaneously an <span class="highlight">FN for
+    class 1</span> (missed a real Pass) AND a <span class="highlight">FP for
+    class 2</span> (falsely flagged Distinction). This double-booking is the
+    genuinely new wrinkle multiclass adds over binary.
+  </div>
+
+  <h2>Confusion matrix — rows=actual, cols=predicted</h2>
+  <div class="box purple">
+    <div class="matrix-grid">
+      <div class="head"></div><div class="head">pred:0</div><div class="head">pred:1</div><div class="head">pred:2</div>
+      <div class="head">act:0</div><div class="diag">2</div><div class="off">1</div><div>0</div>
+      <div class="head">act:1</div><div>0</div><div class="diag">3</div><div class="off">1</div>
+      <div class="head">act:2</div><div class="off">1</div><div>0</div><div class="diag">2</div>
+    </div>
+    <b>Diagonal = correct predictions</b> (2+3+2=7 out of 10). Everything
+    off-diagonal is some class's mistake, counted from two angles at once.
+    <pre>tp = np.diag(conf_matrix)
+fp = conf_matrix.sum(axis=0) - tp   # column total minus diagonal
+fn = conf_matrix.sum(axis=1) - tp   # row total minus diagonal</pre>
+    <b>Why axis=0 gives FP, axis=1 gives FN:</b> summing DOWN a column =
+    "how many times did we predict this class total" (includes wrong ones).
+    Summing ACROSS a row = "how many times was this actually true" (includes
+    missed ones). Same row/column logic as Day 1.
+  </div>
+
+  <h2>Per-class results (our 10-student example)</h2>
+  <div class="box green">
+    <table>
+      <tr><th>Class</th><th>TP</th><th>FP</th><th>FN</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr>
+      <tr><td>0 (Fail)</td><td>2</td><td>1</td><td>1</td><td>0.667</td><td>0.667</td><td>0.667</td><td>3</td></tr>
+      <tr><td>1 (Pass)</td><td>3</td><td>1</td><td>1</td><td>0.750</td><td>0.750</td><td>0.750</td><td>4</td></tr>
+      <tr><td>2 (Distinction)</td><td>2</td><td>1</td><td>1</td><td>0.667</td><td>0.667</td><td>0.667</td><td>3</td></tr>
+    </table>
+    <i>Support</i> = how many students actually belong to that class (row total).
+    This becomes the weight for weighted-averaging below.
+  </div>
+
+  <h2>Three ways to collapse into one number</h2>
+  <div class="box pink">
+<pre>MACRO    = mean of per-class scores, UNWEIGHTED
+         = (0.667 + 0.75 + 0.667) / 3 = 0.6944
+
+MICRO    = pool ALL TP/FP/FN across classes FIRST, then one formula
+         = TP_total/(TP_total+FP_total) = 7/(7+3) = 0.700
+         (always equals plain ACCURACY in standard multiclass)
+
+WEIGHTED = mean of per-class scores, weighted by SUPPORT
+         = (0.667×3 + 0.75×4 + 0.667×3) / 10 = 0.700</pre>
+    <b>Why Micro F1 always = Accuracy:</b> every misclassification produces
+    exactly one FP (wrong class) AND one FN (true class) — so pooled FP
+    always equals pooled FN. That forces micro-precision = micro-recall =
+    fraction correct = accuracy, always, in standard single-label multiclass.
+  </div>
+
+  <h2>Full code — confusion matrix + all 3 averages (verified against sklearn)</h2>
+  <div class="box">
+    This is the complete, side-by-side-verified script from today's session —
+    every line matched exactly against sklearn, in both environments.
+<pre>import numpy as np
+
+y_actual = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 2])
+y_pred   = np.array([0, 1, 0, 1, 1, 2, 1, 2, 0, 2])
+
+n_classes = 3
+conf_matrix = np.zeros((n_classes, n_classes), dtype=int)
+
+for actual, pred in zip(y_actual, y_pred):
+    conf_matrix[actual, pred] += 1
+
+print("Confusion Matrix (rows=actual, cols=predicted):")
+print(conf_matrix)
+
+tp = np.diag(conf_matrix)
+fp = conf_matrix.sum(axis=0) - tp
+fn = conf_matrix.sum(axis=1) - tp
+
+print("\nPer-class TP:", tp)
+print("Per-class FP:", fp)
+print("Per-class FN:", fn)
+
+precision_per_class = tp / (tp + fp)
+recall_per_class = tp / (tp + fn)
+f1_per_class = 2 * (precision_per_class * recall_per_class) / (precision_per_class + recall_per_class)
+
+print("\nPer-class Precision:", np.round(precision_per_class, 4))
+print("Per-class Recall:   ", np.round(recall_per_class, 4))
+print("Per-class F1:       ", np.round(f1_per_class, 4))
+
+# MACRO: plain mean across classes
+macro_precision = precision_per_class.mean()
+macro_recall = recall_per_class.mean()
+macro_f1 = f1_per_class.mean()
+
+# MICRO: pool TP/FP/FN first, then compute once
+micro_tp, micro_fp, micro_fn = tp.sum(), fp.sum(), fn.sum()
+micro_precision = micro_tp / (micro_tp + micro_fp)
+micro_recall = micro_tp / (micro_tp + micro_fn)
+micro_f1 = 2 * (micro_precision * micro_recall) / (micro_precision + micro_recall)
+
+# WEIGHTED: mean weighted by support (row totals = actual count per class)
+support = conf_matrix.sum(axis=1)
+weighted_precision = (precision_per_class * support).sum() / support.sum()
+weighted_recall = (recall_per_class * support).sum() / support.sum()
+weighted_f1 = (f1_per_class * support).sum() / support.sum()
+
+print("\nSupport per class:", support)
+print(f"\nMacro    -> P: {macro_precision:.4f}  R: {macro_recall:.4f}  F1: {macro_f1:.4f}")
+print(f"Micro    -> P: {micro_precision:.4f}  R: {micro_recall:.4f}  F1: {micro_f1:.4f}")
+print(f"Weighted -> P: {weighted_precision:.4f}  R: {weighted_recall:.4f}  F1: {weighted_f1:.4f}")
+
+from sklearn.metrics import confusion_matrix, f1_score
+
+sk_conf_matrix = confusion_matrix(y_actual, y_pred)
+sk_macro_f1 = f1_score(y_actual, y_pred, average='macro')
+sk_micro_f1 = f1_score(y_actual, y_pred, average='micro')
+sk_weighted_f1 = f1_score(y_actual, y_pred, average='weighted')
+
+print("\n--- sklearn check ---")
+print("sklearn confusion matrix matches ours:", np.array_equal(sk_conf_matrix, conf_matrix))
+print(f"Macro F1    -> ours: {macro_f1:.4f}  sklearn: {sk_macro_f1:.4f}  match: {np.isclose(macro_f1, sk_macro_f1)}")
+print(f"Micro F1    -> ours: {micro_f1:.4f}  sklearn: {sk_micro_f1:.4f}  match: {np.isclose(micro_f1, sk_micro_f1)}")
+print(f"Weighted F1 -> ours: {weighted_f1:.4f}  sklearn: {sk_weighted_f1:.4f}  match: {np.isclose(weighted_f1, sk_weighted_f1)}")</pre>
+    <b>Verified output (both environments matched exactly):</b>
+<pre>Confusion Matrix (rows=actual, cols=predicted):
+[[2 1 0]
+ [0 3 1]
+ [1 0 2]]
+
+Per-class TP: [2 3 2]
+Per-class FP: [1 1 1]
+Per-class FN: [1 1 1]
+
+Per-class Precision: [0.6667 0.75   0.6667]
+Per-class Recall:    [0.6667 0.75   0.6667]
+Per-class F1:        [0.6667 0.75   0.6667]
+
+Support per class: [3 4 3]
+
+Macro    -> P: 0.6944  R: 0.6944  F1: 0.6944
+Micro    -> P: 0.7000  R: 0.7000  F1: 0.7000
+Weighted -> P: 0.7000  R: 0.7000  F1: 0.7000
+
+--- sklearn check ---
+sklearn confusion matrix matches ours: True
+Macro F1    -> ours: 0.6944  sklearn: 0.6944  match: True
+Micro F1    -> ours: 0.7000  sklearn: 0.7000  match: True
+Weighted F1 -> ours: 0.7000  sklearn: 0.7000  match: True</pre>
+  </div>
+
+  <h2>What each average is actually FOR</h2>
+  <div class="box">
+    <ul>
+      <li><b>Macro</b> = "treat every class equally, no matter how rare" →
+      exposes minority-class failure. Use for rare-disease detection, fraud,
+      safety-critical minority cases.</li>
+      <li><b>Weighted</b> = "treat every class fairly by its real frequency"
+      → honest average, still computed per-class. Use for general reporting
+      when you want realistic-but-fair numbers.</li>
+      <li><b>Micro</b> = "just count every prediction, pooled" → equals
+      accuracy. Use when you only care about overall correctness.</li>
+    </ul>
+  </div>
+
+  <h2>The imbalance trap — proven with real numbers, not theory</h2>
+  <div class="bug">
+    Built a 95/3/2 imbalanced dataset. A "lazy" model that nails the huge
+    class 0 but is terrible on classes 1 and 2:
+    <pre>Accuracy:     0.9400   <- "the model is excellent!"
+Micro F1:     0.9400   <- same story, pooled predictions dominated by class 0
+Weighted F1:  0.9323   <- still close to accuracy
+Macro F1:     0.4562   <- "the model is FAILING on 2 of 3 classes"</pre>
+    Class 2 (rare) scored <b>F1 = 0.000</b> — total failure, zero students
+    caught — completely invisible in accuracy, screamingly obvious in Macro F1.
+    <span class="highlight">Whenever classes are imbalanced: report Macro F1
+    alongside accuracy, never accuracy alone.</span>
+  </div>
+
+  <h2>Full code — the first imbalance demo (95/3/2 labels)</h2>
+  <div class="box orange">
+    This is the exact code that first exposed the trap, before we moved to
+    the full feature-based experiment below.
+<pre>import numpy as np
+np.random.seed(42)
+
+# Simulate an imbalanced 3-class dataset: 95 Fail, 3 Pass, 2 Distinction
+y_actual_imb = np.array([0]*95 + [1]*3 + [2]*2)
+
+# Simulate a "lazy" model: great at majority class, weak on rare ones
+y_pred_imb = y_actual_imb.copy()
+y_pred_imb[3] = 1   # class 0 error
+y_pred_imb[7] = 2   # class 0 error
+y_pred_imb[95] = 0  # class 1: wrong
+y_pred_imb[96] = 1  # class 1: correct
+y_pred_imb[97] = 0  # class 1: wrong
+y_pred_imb[98] = 0  # class 2: wrong
+y_pred_imb[99] = 0  # class 2: wrong
+
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, classification_report
+
+acc = accuracy_score(y_actual_imb, y_pred_imb)
+macro_f1 = f1_score(y_actual_imb, y_pred_imb, average='macro')
+micro_f1 = f1_score(y_actual_imb, y_pred_imb, average='micro')
+weighted_f1 = f1_score(y_actual_imb, y_pred_imb, average='weighted')
+
+print(f"Accuracy:     {acc:.4f}")
+print(f"Macro F1:     {macro_f1:.4f}")
+print(f"Micro F1:     {micro_f1:.4f}")
+print(f"Weighted F1:  {weighted_f1:.4f}")
+print("\nConfusion Matrix:\n", confusion_matrix(y_actual_imb, y_pred_imb))
+print("\nPer-class report:\n", classification_report(y_actual_imb, y_pred_imb, digits=3))</pre>
+    <b>Output:</b>
+<pre>Accuracy:     0.9400
+Macro F1:     0.4562
+Micro F1:     0.9400
+Weighted F1:  0.9323
+
+Confusion Matrix:
+ [[93  1  1]
+ [ 2  1  0]
+ [ 2  0  0]]
+
+Per-class report:
+              precision    recall  f1-score   support
+
+           0      0.959     0.979     0.969        95
+           1      0.500     0.333     0.400         3
+           2      0.000     0.000     0.000         2
+
+    accuracy                          0.940       100
+   macro avg      0.486     0.437     0.456       100
+weighted avg      0.926     0.940     0.932       100</pre>
+    <span class="highlight">Class 2 (rare) scored a total F1=0.000 failure —
+    zero students caught, precision and recall both zero — completely
+    invisible in Accuracy/Micro/Weighted, screamingly obvious in Macro F1.</span>
+  </div>
+
+  <h2>Fixing imbalance — class_weight='balanced'</h2>
+  <div class="box green">
+    Real experiment: 300/15/8 imbalanced feature-based dataset, Logistic
+    Regression trained twice.
+<pre>model_default  = LogisticRegression(max_iter=1000).fit(X_train, y_train)
+model_balanced = LogisticRegression(max_iter=1000,
+                                     class_weight='balanced').fit(X_train, y_train)</pre>
+    <table>
+      <tr><th>Metric</th><th>Default</th><th>Balanced</th></tr>
+      <tr><td>Macro F1</td><td>0.8001</td><td>0.8993</td></tr>
+      <tr><td>Weighted F1</td><td>0.9650</td><td>0.9808</td></tr>
+      <tr><td>Class 1 Recall</td><td>0.60 (missed 2/5)</td><td>1.00 (caught all 5)</td></tr>
+      <tr><td>Class 2 Recall</td><td>0.50 (missed 1/2)</td><td>1.00 (caught both)</td></tr>
+    </table>
+    Macro F1 rose far more (+0.099) than Weighted F1 (+0.016) — exactly
+    because macro is most sensitive to minority-class gains.
+  </div>
+
+  <h2>Full code — the imbalance experiment, all 3 blocks (verified against sklearn)</h2>
+  <div class="box">
+    Complete script from today, built and confirmed block-by-block in both
+    environments before moving forward.
+    <span class="label">Block 1 — build the imbalanced dataset:</span>
+<pre>import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score, confusion_matrix, classification_report
+
+np.random.seed(42)
+
+# 3-class imbalanced data with 2 features
+# Class 0 (majority): 300 samples, centered at (0,0)
+# Class 1 (minority): 15 samples, centered at (3,3)
+# Class 2 (rare minority): 8 samples, centered at (-3,3)
+X0 = np.random.randn(300, 2) * 1.5 + [0, 0]
+X1 = np.random.randn(15, 2) * 1.0 + [3, 3]
+X2 = np.random.randn(8, 2) * 1.0 + [-3, 3]
+
+X = np.vstack([X0, X1, X2])
+y = np.array([0]*300 + [1]*15 + [2]*8)
+
+print("Class distribution:", np.bincount(y))
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+print("Train class counts:", np.bincount(y_train))
+print("Test class counts: ", np.bincount(y_test))</pre>
+    <b>Output:</b>
+<pre>Class distribution: [300  15   8]
+Train class counts: [210  10   6]
+Test class counts:  [90  5  2]</pre>
+
+    <span class="label">Block 2 — train the default (unweighted) model:</span>
+<pre># --- Model 1: default, no class weighting ---
+model_default = LogisticRegression(max_iter=1000).fit(X_train, y_train)
+pred_default = model_default.predict(X_test)
+
+print("\n=== DEFAULT (unweighted) ===")
+print("Confusion matrix:\n", confusion_matrix(y_test, pred_default))
+print(classification_report(y_test, pred_default, digits=3, zero_division=0))
+print(f"Macro F1: {f1_score(y_test, pred_default, average='macro'):.4f}")
+print(f"Weighted F1: {f1_score(y_test, pred_default, average='weighted'):.4f}")</pre>
+    <b>Output:</b>
+<pre>=== DEFAULT (unweighted) ===
+Confusion matrix:
+ [[90  0  0]
+ [ 2  3  0]
+ [ 1  0  1]]
+              precision    recall  f1-score   support
+
+           0      0.968     1.000     0.984        90
+           1      1.000     0.600     0.750         5
+           2      1.000     0.500     0.667         2
+
+    accuracy                          0.969        97
+   macro avg      0.989     0.700     0.800        97
+weighted avg      0.970     0.969     0.965        97
+
+Macro F1: 0.8001
+Weighted F1: 0.9650</pre>
+
+    <span class="label">Block 3 — train with class_weight='balanced', compare both:</span>
+<pre># --- Model 2: class_weight='balanced' ---
+model_balanced = LogisticRegression(max_iter=1000, class_weight='balanced').fit(X_train, y_train)
+pred_balanced = model_balanced.predict(X_test)
+
+print("\n=== BALANCED (class_weight='balanced') ===")
+print("Confusion matrix:\n", confusion_matrix(y_test, pred_balanced))
+print(classification_report(y_test, pred_balanced, digits=3, zero_division=0))
+print(f"Macro F1: {f1_score(y_test, pred_balanced, average='macro'):.4f}")
+print(f"Weighted F1: {f1_score(y_test, pred_balanced, average='weighted'):.4f}")
+
+print("\n=== COMPARISON ===")
+print(f"Macro F1:    default={f1_score(y_test, pred_default, average='macro'):.4f}  "
+      f"balanced={f1_score(y_test, pred_balanced, average='macro'):.4f}")
+print(f"Weighted F1: default={f1_score(y_test, pred_default, average='weighted'):.4f}  "
+      f"balanced={f1_score(y_test, pred_balanced, average='weighted'):.4f}")</pre>
+    <b>Output:</b>
+<pre>=== BALANCED (class_weight='balanced') ===
+Confusion matrix:
+ [[88  1  1]
+ [ 0  5  0]
+ [ 0  0  2]]
+              precision    recall  f1-score   support
+
+           0      1.000     0.978     0.989        90
+           1      0.833     1.000     0.909         5
+           2      0.667     1.000     0.800         2
+
+    accuracy                          0.979        97
+   macro avg      0.833     0.993     0.899        97
+weighted avg      0.985     0.979     0.981        97
+
+Macro F1: 0.8993
+Weighted F1: 0.9808
+
+=== COMPARISON ===
+Macro F1:    default=0.8001  balanced=0.8993
+Weighted F1: default=0.9650  balanced=0.9808</pre>
+    <span class="highlight">Both environments (mine and Rahul's) confirmed
+    identical output at every block, block-by-block, before proceeding.</span>
+  </div>
+
+  <h2>How class_weight='balanced' works — Day 7's Ridge idea, reused</h2>
+  <div class="box orange">
+<pre>weight_for_class_c = n_samples / (n_classes × count_of_class_c)</pre>
+    A rare class gets a huge weight multiplier, so mistakes on it cost the
+    loss function far more than mistakes on the majority class. <b>Same
+    mechanism as Day 7's Ridge penalty</b> (<code>+λwᵀw</code> inside the
+    loss) — except the "tax" here targets <i>misclassifying rare-class
+    samples</i> instead of <i>large weights</i>. Change what the loss
+    punishes, the model's behavior follows.
+  </div>
+
+  <h2>Alternative fix — resampling (data-level, not algorithm-level)</h2>
+  <div class="box purple">
+    <code>class_weight='balanced'</code> changes the LOSS. Resampling changes
+    the DATA itself:
+    <ul>
+      <li><b>Oversampling</b> — duplicate or synthetically generate
+      (SMOTE) more minority-class samples</li>
+      <li><b>Undersampling</b> — throw away some majority-class samples so
+      classes are naturally balanced</li>
+    </ul>
+    Name to remember for a future deep-dive — not built by hand yet.
+  </div>
+
+  <h2>Interview questions — plain-language answers</h2>
+  <div class="qa">
+    <div class="q">Q1. Why can accuracy be misleading on imbalanced data?</div>
+    It only counts total correct predictions — a model can score 96%+ by
+    nailing the huge majority class alone while completely missing minority
+    classes, and the single number won't reveal that.
+  </div>
+  <div class="qa">
+    <div class="q">Q2. When do you use macro vs weighted vs micro F1?</div>
+    Macro when every class matters equally regardless of frequency (rare
+    disease, fraud). Weighted for an honest average reflecting real class
+    proportions. Micro for pooled overall correctness (= accuracy).
+  </div>
+  <div class="qa">
+    <div class="q">Q3. Why does micro F1 always equal accuracy in standard multiclass?</div>
+    Every misclassification creates exactly one FP and one FN, so pooled FP
+    always equals pooled FN — forcing micro-precision = micro-recall =
+    fraction correct = accuracy.
+  </div>
+  <div class="qa">
+    <div class="q">Q4. How does class_weight='balanced' fix imbalance without touching the data?</div>
+    It reweights each sample's contribution to the loss inversely to its
+    class's frequency — rare-class mistakes cost far more, pushing the
+    optimizer to actually fit them instead of ignoring them.
+  </div>
+  <div class="qa">
+    <div class="q">Q5. Besides class weighting, what's a data-level alternative?</div>
+    Resampling — oversample the minority class (duplication or SMOTE) or
+    undersample the majority class, changing what the model sees during
+    training rather than how the loss is computed.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Multiclass metric trick</td><td>run Day 10's binary formulas once per class, each takes a turn as "positive"</td></tr>
+      <tr><td>Confusion matrix convention</td><td>rows=actual, cols=predicted; diagonal=correct</td></tr>
+      <tr><td>tp = np.diag(matrix)</td><td>correct predictions per class</td></tr>
+      <tr><td>fp = col_sum - tp</td><td>everyone wrongly predicted as this class</td></tr>
+      <tr><td>fn = row_sum - tp</td><td>everyone who really is this class, missed</td></tr>
+      <tr><td>Macro average</td><td>plain mean of per-class scores — exposes minority failure</td></tr>
+      <tr><td>Micro average</td><td>pool TP/FP/FN first, then one score — equals accuracy</td></tr>
+      <tr><td>Weighted average</td><td>per-class mean weighted by support (real class frequency)</td></tr>
+      <tr><td>Why Micro F1 = Accuracy</td><td>every mistake = one FP + one FN, always, in standard multiclass</td></tr>
+      <tr><td>Imbalance trap</td><td>accuracy/micro/weighted can all look great while macro exposes total minority-class failure</td></tr>
+      <tr><td>class_weight='balanced'</td><td>reweights loss inversely to class frequency — Day 7's Ridge idea, reused for misclassification instead of large weights</td></tr>
+      <tr><td>Resampling (name only)</td><td>oversampling (SMOTE)/undersampling — data-level alternative to class weighting</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 13 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-02 / day-13-multiclass-metrics-imbalance · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
