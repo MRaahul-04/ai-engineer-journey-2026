@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 14 Notes — kNN &amp; Gaussian Naive Bayes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle { font-size: 18px; color: #4a6b3a; margin-bottom: 25px; }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  h3 {
+    font-family: 'Caveat', cursive;
+    font-size: 24px;
+    color: #97530c;
+    margin: 22px 0 6px 0;
+  }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label { font-family: 'Caveat', cursive; font-weight: 700; font-size: 22px; }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .highlight { background: #fce27a; padding: 0 4px; border-radius: 3px; }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  td, th { border: 1.5px dashed #a08a5e; padding: 8px 10px; text-align: left; font-size: 16px; }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 19px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note { margin-top: 20px; font-size: 15px; color: #6a6a6a; font-style: italic; }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+  .fix {
+    border: 2px dashed #4a7d3a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0 16px 0;
+    background: #f2f9ec;
+    font-size: 16px;
+  }
+  .qa { border-left: 4px solid #6b4fa0; padding: 6px 14px; margin: 10px 0; background: #f8f6fd; }
+  .qa .q { font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; color: #4a3372; }
+  .section-divider {
+    text-align: center;
+    font-family: 'Caveat', cursive;
+    font-size: 34px;
+    color: #7a5c3e;
+    margin: 40px 0 10px 0;
+    border-top: 3px double #7a5c3e;
+    padding-top: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 14 — kNN &amp; Gaussian Naive Bayes</h1>
+  <div class="subtitle">Week 2 · Day 14 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Days 9-13 all built ONE family: regression-based classifiers (sigmoid/softmax +
+    gradient descent). Today we meet <span class="highlight">two genuinely different
+    families</span> — kNN (compare to nearby points, no training at all) and
+    Naive Bayes (probability + Bayes' Theorem). Both get evaluated immediately using
+    Day 13's fresh macro/micro/weighted F1 toolkit — B→A sequencing complete.
+  </div>
+
+  <div class="section-divider">Part 1 — k-Nearest Neighbors</div>
+
+  <h2>The core intuition — no formula first</h2>
+  <div class="box green">
+    New student's dot on a chart of (hours, attendance). Old students scattered
+    around, each labeled Pass/Fail. <span class="highlight">The physically closest
+    dots should count more than distant ones</span> — don't average all 20 equally,
+    just pick the <b>k closest</b> and let them vote by majority. That's the ENTIRE
+    algorithm. No weights, no loss function, no gradient descent.
+  </div>
+
+  <h2>Euclidean distance — Day 1's Pythagoras, reused</h2>
+  <div class="box orange">
+    "Closeness" between two vectors = subtract them first (Day 1's arrow-difference),
+    THEN apply Day 1's length formula to that difference vector:
+    <pre>diff = point1 - point2          # e.g. [6,55]-[4,58] = [2,-3]
+squared = diff ** 2              # [4, 9]
+total = sum(squared)             # 13
+distance = sqrt(total)           # 3.6055</pre>
+    <code>np.linalg.norm(point1 - point2)</code> does this in one call — same Day 4
+    tool, applied to a difference instead of a raw vector.
+  </div>
+
+  <h2>The full recipe</h2>
+  <div class="box purple">
+    <ol>
+      <li>Choose k (decided beforehand, e.g. k=3)</li>
+      <li>Compute distance from new point to EVERY training point</li>
+      <li>Sort distances smallest→largest (<code>np.argsort</code> — returns
+      <u>indices</u>, not values)</li>
+      <li>Take the top k closest indices</li>
+      <li>Majority vote among those k labels (<code>np.bincount</code> +
+      <code>np.argmax</code>)</li>
+    </ol>
+  </div>
+
+  <h2>From scratch — full class (verified vs sklearn: [0 1 0] both)</h2>
+  <div class="box pink">
+<pre>class KNNClassifierScratch:
+    def __init__(self, k=5):
+        self.k = k
+
+    def fit(self, X, y):
+        self.X_train = X
+        self.y_train = y
+        return self
+
+    def _euclidean_distance(self, point1, point2):
+        diff = point1 - point2
+        return np.sqrt(np.sum(diff ** 2))
+
+    def _predict_one(self, new_point):
+        distances = [self._euclidean_distance(new_point, x) for x in self.X_train]
+        sorted_indices = np.argsort(distances)
+        k_nearest_indices = sorted_indices[:self.k]
+        k_nearest_labels = self.y_train[k_nearest_indices]
+        counts = np.bincount(k_nearest_labels)
+        return np.argmax(counts)
+
+    def predict(self, X):
+        return np.array([self._predict_one(x) for x in X])</pre>
+    <code>fit()</code> is genuinely just 2 lines — "lazy learner" made literal.
+    All real work happens inside <code>predict()</code>.
+  </div>
+
+  <h2>"Lazy learner" / non-parametric — why it matters</h2>
+  <div class="box">
+    <b>Parametric</b> (Linear/Logistic/Softmax Reg): fixed-size weight vector
+    <code>w</code> learned upfront in <code>fit()</code>; training data can be
+    discarded afterward; <code>predict()</code> is cheap regardless of dataset size.
+    <br><br>
+    <b>kNN (non-parametric):</b> NO fixed parameters at all — the model IS the
+    stored training data. <code>fit()</code> does almost nothing;
+    <code>predict()</code> must scan ALL training points every single time.
+    <span class="highlight">Prediction gets slower as the dataset grows</span> —
+    a real production bottleneck at scale (fixed by KD-trees/ball trees — name to
+    remember, not built).
+  </div>
+
+  <h2>The scaling trap — same canyon, new mechanism</h2>
+  <div class="bug">
+    Euclidean distance <b>sums raw feature values directly</b>. hours ranges 1-9,
+    attendance ranges 45-95 — attendance's bigger raw scale silently
+    <b>dominates every distance calculation</b>, regardless of which feature is
+    actually more predictive. Proven: 7-hour gap → distance=7; 40-point attendance
+    gap → distance=40 — attendance wins purely on units, not on real signal.
+  </div>
+  <div class="fix">
+    Same fix as Day 6/Day 9: <b>standardize before computing any distance.</b>
+    <pre>mean = X_train.mean(axis=0)
+std  = X_train.std(axis=0)
+X_train_scaled = (X_train - mean) / std
+X_test_scaled  = (X_test - mean) / std     # REUSE training mean/std, never refit on test</pre>
+    <span class="highlight">Always fit scaling params on training data only</span> —
+    a test set standardized on its own mean loses all real comparability to training data.
+  </div>
+
+  <h2>Choosing k — the bias-variance tradeoff, proven with a real sweep</h2>
+  <div class="box orange">
+    <pre>k=1,3    -> F1=0.8750   (noisy, overfits to individual outlier points)
+k=5-11   -> F1=0.9091   (smoothing starts to help)
+k=15-51  -> F1=0.9412   (best zone — tied across several k values)
+k=84     -> F1=0.0000   (collapsed to "always predict majority class")</pre>
+    <b>Small k</b> = low bias, high variance (hugs data tightly, sensitive to noise).
+    <b>Large k</b> = high bias, low variance (smooth but ignores local structure,
+    degenerates toward majority-class-only at the extreme).
+    <br><br>
+    <b>Tie-breaking rule:</b> among tied-best k values, prefer the <u>smallest</u> —
+    safer, less likely to be secretly relying on "just guess majority." Also prefer
+    <b>odd k</b> in binary classification to avoid vote ties.
+  </div>
+
+  <div class="section-divider">Part 2 — Gaussian Naive Bayes</div>
+
+  <h2>Bayes' Theorem — built from a real medical example</h2>
+  <div class="box green">
+    Disease affects 1% of population. Test is 90% accurate on sick people, 5% false
+    positive rate on healthy people. Out of 1,000 people:
+    <pre>10 actually sick   -> 9 test positive (true positives)
+990 actually healthy -> ~50 test positive anyway (false positives)
+
+Total positive = 9 + 50 = 59
+P(Disease | Positive) = 9/59 ≈ 15%     <- NOT 90%!</pre>
+    <span class="highlight">A "90% accurate" test only gives ~15% real confidence</span>
+    when the disease is rare — because the huge healthy population generates more
+    false alarms than the tiny sick population generates true detections.
+  </div>
+  <div class="box">
+<pre>P(Class | Features) = P(Features | Class) × P(Class) / P(Features)</pre>
+    <b>Prior</b> P(Class) = belief before evidence. <b>Likelihood</b>
+    P(Features|Class) = chance of this evidence, given the class.
+    <b>Posterior</b> P(Class|Features) = updated belief after evidence — what we
+    actually want, to predict Pass/Fail from hours/attendance.
+  </div>
+
+  <h2>Why "naive" — the independence assumption</h2>
+  <div class="box purple">
+    Computing the TRUE joint probability of multiple features together is hard
+    (needs huge data to estimate reliably). Naive Bayes just <b>assumes every
+    feature is independent given the class</b> — even if false in reality — so it
+    can multiply individual feature probabilities instead:
+    <pre>P(hours, attendance | Class) ≈ P(hours | Class) × P(attendance | Class)</pre>
+    <b>Why it still works well:</b> classification only needs the correct
+    <u>ranking</u> between classes, not perfectly calibrated exact probabilities.
+    The wrong assumption often distorts every class's score similarly, so the
+    winner still comes out right even when the raw numbers are miscalibrated.
+  </div>
+
+  <h2>Gaussian PDF — probability for continuous features</h2>
+  <div class="box orange">
+    Can't ask "P(hours = exactly 6.0)" for continuous data — always ≈0.
+    Instead: how "typical" is 6.0 given this class's mean and spread?
+    <pre>P(x | Class) = 1/√(2πσ²) · e^(-(x-μ)² / 2σ²)</pre>
+    Verified by hand: at x=mean, output peaks (0.332 for mean=7.14,std=1.2).
+    Far from mean (x=20) → collapses to ≈3.8×10⁻²⁶ — essentially "impossible"
+    for that class.
+  </div>
+
+  <h2>Log-probabilities — preventing underflow</h2>
+  <div class="bug">
+    Multiplying many small probabilities (e.g. 20 features, each ~10⁻²⁶) risks
+    <b>floating-point underflow</b> — the product silently rounds to exactly 0.0,
+    destroying all information.
+  </div>
+  <div class="fix">
+    Same log-space trick as Day 9/12: <code>log(a×b) = log(a) + log(b)</code>.
+    Add logs instead of multiplying raw values — log is monotonic, so the
+    <u>ranking</u> between classes survives, but numbers stay numerically safe.
+  </div>
+
+  <h2>GaussianNaiveBayesScratch — full class (verified vs sklearn: [0 1 0] both)</h2>
+  <div class="box pink">
+<pre>def gaussian_pdf(x, mean, std):
+    exponent = -((x - mean) ** 2) / (2 * std ** 2)
+    coefficient = 1 / np.sqrt(2 * np.pi * std ** 2)
+    return coefficient * np.exp(exponent)
+
+class GaussianNaiveBayesScratch:
+    def fit(self, X, y):
+        self.classes = np.unique(y)      # generalizes to ANY number of classes
+        self.means = {}
+        self.stds = {}
+        self.priors = {}
+        for c in self.classes:
+            X_c = X[y == c]
+            self.means[c] = X_c.mean(axis=0)
+            self.stds[c] = X_c.std(axis=0)
+            self.priors[c] = len(X_c) / len(X)
+        return self
+
+    def _predict_one(self, x):
+        scores = {}
+        for c in self.classes:
+            log_score = np.log(self.priors[c])
+            for i in range(len(x)):
+                log_score += np.log(gaussian_pdf(x[i], self.means[c][i], self.stds[c][i]))
+            scores[c] = log_score
+        return max(scores, key=scores.get)   # returns winning CLASS LABEL, not the score
+
+    def predict(self, X):
+        return np.array([self._predict_one(x) for x in X])</pre>
+    Real traced numbers for the tricky student [6,55]:
+    <pre>log_score_fail ≈ -6.17    log_score_pass ≈ -53.77   -> predicts Fail (correct!)</pre>
+    <code>np.unique(y)</code> instead of hardcoded masks means this same code works
+    for 2 classes or 20 classes, no rewrite needed (Day 12's softmax generality, reused).
+  </div>
+
+  <h2>Zero-frequency problem &amp; Laplace smoothing</h2>
+  <div class="bug">
+    If a categorical feature value NEVER appeared in training for some class, its
+    probability estimate is exactly 0. In log-space: <code>log(0) = -inf</code> —
+    that class is permanently ruled out, regardless of how strongly every other
+    feature pointed toward it.
+  </div>
+  <div class="fix">
+    <b>Laplace smoothing:</b> add a small constant (usually 1) to every count
+    before computing probabilities — guarantees no estimate is ever exactly 0.
+    Matters far more for categorical/discrete NB (text/spam) than Gaussian NB
+    (continuous PDFs rarely hit a hard zero).
+  </div>
+
+  <h2>Why Gaussian NB doesn't need feature scaling (unlike kNN)</h2>
+  <div class="box">
+    kNN combines ALL features into ONE shared distance number — a big-scale
+    feature dominates that combination. Gaussian NB computes each feature's PDF
+    <b>completely separately</b>, against its OWN mean/std — never combined until
+    the final log-sum. Each feature is judged fairly on its own natural scale from
+    the start, so scaling isn't required for correctness.
+  </div>
+
+  <div class="section-divider">Head-to-Head: Day 13's Imbalanced Dataset (300/15/8)</div>
+
+  <h2>Real comparison — Macro F1 exposes a genuine weakness</h2>
+  <div class="box green">
+<pre>kNN (k=15):   Macro F1=0.5148   Micro F1=0.9485   Weighted F1=0.9322
+GaussianNB:   Macro F1=0.8482   Micro F1=0.9794   Weighted F1=0.9772</pre>
+    Confusion matrices: kNN missed 3/5 of class 1 and ALL of class 2 (0/2 correct).
+    GaussianNB missed only 1/5 of class 1 and caught 1/2 of class 2.
+    <span class="highlight">Micro/Weighted F1 look "fine" for both (~0.93-0.98) —
+    only Macro F1 exposes kNN's real minority-class failure</span> — Day 13's
+    lesson, now proven on a brand-new model family.
+  </div>
+
+  <h2>Why kNN struggles more on imbalance</h2>
+  <div class="box purple">
+    With majority class hugely outnumbering rare classes, a rare point's k=15
+    nearest neighbors <b>statistically tend to include majority-class points</b>
+    nearby — diluting the rare class's vote. Gaussian NB has no such vulnerability —
+    it just asks "which class's mean/spread fits best," independent of how many
+    training points that class has.
+  </div>
+
+  <h2>Rebalancing knobs — algorithm-level vs data-level</h2>
+  <div class="box orange">
+    <b>GaussianNB</b> has a <code>priors</code> parameter — manually set custom
+    class priors, similar spirit to <code>class_weight='balanced'</code>.
+    <b>kNN has NO class_weight equivalent</b> — no loss function to reweight at
+    all (closest lever: <code>weights='distance'</code>, weights closer neighbors
+    more heavily, doesn't fix imbalance directly).
+    <span class="highlight">Algorithms WITH a loss function can rebalance via
+    reweighting; algorithms WITHOUT one (kNN) need a DATA-level fix instead</span>
+    (resampling — oversampling/undersampling, named Day 13, still not built).
+  </div>
+
+  <h2>Interview Q&amp;A — kNN</h2>
+  <div class="qa">
+    <div class="q">Q1. Why is kNN a "lazy learner"?</div>
+    fit() only stores data — no real computation happens until predict(), unlike
+    "eager learners" (Logistic Regression) that do all learning upfront.
+  </div>
+  <div class="qa">
+    <div class="q">Q2. Small k vs large k?</div>
+    Small k (e.g. 1): high variance, overfits to noise/outliers. Large k
+    (approaching full dataset size): high bias, underfits, degenerates toward
+    always predicting the majority class.
+  </div>
+  <div class="qa">
+    <div class="q">Q3. Why must you scale features before kNN?</div>
+    Euclidean distance sums raw feature values into one combined number — a
+    bigger-scale feature silently dominates distance regardless of true importance.
+  </div>
+  <div class="qa">
+    <div class="q">Q4. Why "non-parametric"?</div>
+    No fixed, compressed parameter set (like a weight vector) — the training data
+    itself IS the model; complexity/size grows directly with data volume.
+  </div>
+  <div class="qa">
+    <div class="q">Q5. Major production weakness vs Logistic Regression?</div>
+    Prediction cost grows with training set size (must scan all stored points every
+    time) — Logistic Regression's prediction cost stays constant regardless of
+    training set size.
+  </div>
+
+  <h2>Interview Q&amp;A — Naive Bayes</h2>
+  <div class="qa">
+    <div class="q">Q1. What does "naive" mean here?</div>
+    Assumes all features are conditionally independent given the class — often
+    false, but makes the joint probability computable via simple multiplication.
+  </div>
+  <div class="qa">
+    <div class="q">Q2. Why does it work despite a false assumption?</div>
+    Classification only needs correct ranking between classes, not calibrated exact
+    probabilities — the assumption distorts all classes similarly, so the winner
+    usually still comes out right.
+  </div>
+  <div class="qa">
+    <div class="q">Q3. Why log-probabilities instead of raw?</div>
+    Multiplying many small probabilities risks underflow (product rounds to exactly
+    0.0). Logs turn multiplication into addition — ranking preserved, numerically safe.
+  </div>
+  <div class="qa">
+    <div class="q">Q4. What's the zero-frequency problem, and the fix?</div>
+    An unseen feature value gives probability 0, forcing that entire class's score
+    to -inf (log-space) regardless of other evidence. Fixed via Laplace smoothing —
+    add a small constant to every count before computing probabilities.
+  </div>
+  <div class="qa">
+    <div class="q">Q5. How does Gaussian NB's training cost compare to kNN's?</div>
+    Gaussian NB IS a real eager learner — fit() computes and stores compressed
+    mean/std/prior statistics; predict() is cheap regardless of training set size.
+    Opposite of kNN's lazy, store-everything approach.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>kNN core idea</td><td>compare new point to k physically closest training points, majority vote</td></tr>
+      <tr><td>Euclidean distance</td><td>√Σ(A_i - B_i)² — Day 1's length formula, applied to a difference vector</td></tr>
+      <tr><td>np.argsort</td><td>returns sorted INDICES, not values — needed to look up labels after sorting</td></tr>
+      <tr><td>np.bincount + np.argmax</td><td>counts label occurrences, returns the most frequent label itself</td></tr>
+      <tr><td>Lazy learner / non-parametric</td><td>fit() just stores data; all work deferred to predict(); model size grows with data</td></tr>
+      <tr><td>kNN scaling requirement</td><td>mandatory — raw-scale features dominate combined Euclidean distance</td></tr>
+      <tr><td>Choosing k</td><td>sweep values, pick best F1; prefer smallest k among ties, odd k for binary</td></tr>
+      <tr><td>Bayes' Theorem</td><td>P(Class|Features) = P(Features|Class)×P(Class) / P(Features)</td></tr>
+      <tr><td>"Naive" assumption</td><td>features assumed conditionally independent given class — often false, still works via ranking</td></tr>
+      <tr><td>Gaussian PDF</td><td>1/√(2πσ²)·e^(-(x-μ)²/2σ²) — peaks at mean, decays with distance from it</td></tr>
+      <tr><td>Log-probabilities</td><td>sum logs instead of multiplying raw probs — prevents underflow, preserves ranking</td></tr>
+      <tr><td>Zero-frequency problem</td><td>unseen feature value → probability 0 → log(-inf) → class permanently ruled out</td></tr>
+      <tr><td>Laplace smoothing</td><td>add small constant to counts before computing probabilities — avoids hard zeros</td></tr>
+      <tr><td>Why GNB skips scaling</td><td>each feature's PDF computed separately against its own mean/std, never combined until final log-sum</td></tr>
+      <tr><td>kNN on imbalance</td><td>weak — majority class dilutes rare-class votes in the k-neighborhood</td></tr>
+      <tr><td>GNB on imbalance</td><td>stronger — per-class mean/std fit is independent of class sample count</td></tr>
+      <tr><td>Rebalancing kNN</td><td>no loss to reweight — needs data-level fix (resampling), not algorithm-level</td></tr>
+      <tr><td>Rebalancing GNB</td><td>optional custom `priors` parameter — similar spirit to class_weight='balanced'</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 14 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-02 / day-14-knn-naive-bayes · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
