@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Week 2 Handbook — Review, Scorecard & Week 3 Roadmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 46px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle { font-size: 18px; color: #4a6b3a; margin-bottom: 25px; }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 32px;
+    color: #1f5fa5;
+    margin: 34px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  h3 {
+    font-family: 'Caveat', cursive;
+    font-size: 24px;
+    color: #97530c;
+    margin: 18px 0 6px 0;
+  }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label { font-family: 'Caveat', cursive; font-weight: 700; font-size: 22px; }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .highlight { background: #fce27a; padding: 0 4px; border-radius: 3px; }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  td, th { border: 1.5px dashed #a08a5e; padding: 8px 10px; text-align: left; font-size: 16px; }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 20px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note { margin-top: 20px; font-size: 15px; color: #6a6a6a; font-style: italic; }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+  .fix {
+    border: 2px dashed #4a7d3a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0 16px 0;
+    background: #f2f9ec;
+    font-size: 16px;
+  }
+  .qa { border-left: 4px solid #6b4fa0; padding: 6px 14px; margin: 10px 0; background: #f8f6fd; }
+  .qa .q { font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; color: #4a3372; }
+  .score-bar {
+    display: inline-block; width: 140px; height: 14px; background: #eee5cf;
+    border-radius: 7px; overflow: hidden; vertical-align: middle; margin-left: 8px;
+    border: 1.5px solid #a08a5e;
+  }
+  .score-fill { height: 100%; background: #4a7d3a; }
+  .day-chip {
+    display: inline-block; font-family: 'Caveat', cursive; font-weight: 700;
+    font-size: 18px; color: #fff; background: #1f5fa5; border-radius: 6px;
+    padding: 2px 10px; margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Week 2 Handbook — Full Review</h1>
+  <div class="subtitle">Days 9–14 of 84 · Classification Foundations Complete · AI Engineer Journey 2026</div>
+
+  <div class="box">
+    <span class="label">The arc of Week 2, in one breath:</span><br>
+    Week 1 built regression on <i>numbers</i>. Week 2 built regression on
+    <i>categories</i> — sigmoid for yes/no, softmax as its natural extension
+    to many classes — then immediately built the toolkit to judge those
+    models honestly (confusion matrix → precision/recall/F1 → ROC/AUC → the
+    multiclass and imbalance versions of all of it), before finally stepping
+    outside the regression family entirely with kNN and Naive Bayes, and
+    using that same toolkit to expose a real weakness in kNN. Nothing was
+    wasted — Day 10's metrics became Day 13's per-class metrics became
+    Day 14's judge of two brand-new model families.
+  </div>
+
+  <h2>Day-by-Day: What Each Day Actually Built</h2>
+
+  <h3><span class="day-chip">Day 9</span> Logistic Regression</h3>
+  <div class="box green">
+    Linear Regression's line has no ceiling/floor — meaningless for
+    probability. Sigmoid squashes any real number into (0,1), never
+    touching the edges. SSE fails for classification (flat gradient on
+    confident wrong answers); Binary Cross-Entropy fixes it with an
+    unbounded penalty. The gradient <code>Xᵀ(predictions−y)</code> looks
+    identical to Day 6's Linear Regression gradient — proven today to be no
+    coincidence: log is exponential's exact inverse, so BCE's log and
+    sigmoid's exponential cancel down to the same clean shape by design,
+    not by accident.
+  </div>
+
+  <h3><span class="day-chip">Day 10</span> Classification Metrics</h3>
+  <div class="box orange">
+    90% accuracy sounds great, hides everything. Confusion matrix splits
+    every prediction into 4 boxes (TP/FP/FN/TN). Precision = "when I say
+    yes, am I right?" Recall = "did I catch every real yes?" Proven
+    mechanically that lowering the threshold trades Recall up for
+    Precision down. F1 uses a harmonic mean specifically because a plain
+    average lets one strong score hide one broken one.
+  </div>
+
+  <h3><span class="day-chip">Day 11</span> ROC Curve &amp; AUC</h3>
+  <div class="box purple">
+    Sweep the classification threshold across every value, plot
+    TPR vs FPR, get one number (AUC) summarizing ranking quality regardless
+    of threshold. AUC=0.5 is a coin flip, AUC=1.0 is perfect separation.
+    Real debugging moment: sorting ROC points by FPR (a tie-prone column)
+    before integrating silently corrupted the curve — fixed by sorting on
+    threshold (guaranteed unique) instead. Generalized today to other
+    places the same bug shape could hide (PR curves, kNN tie-breaking).
+  </div>
+
+  <h3><span class="day-chip">Day 12</span> Softmax Regression</h3>
+  <div class="box pink">
+    Independent one-vs-rest sigmoids don't sum to 1 — no shared
+    constraint. Softmax fixes this: exponentiate every score, divide by
+    the shared sum, forcing all classes to compete for one 100% pie.
+    Proven algebraically that sigmoid is softmax's exact 2-class special
+    case. Same overflow trap as any exponential (fixed by subtracting the
+    max first) and the same gradient-cancellation trick as Day 9, now
+    generalized to a full weight matrix.
+  </div>
+
+  <h3><span class="day-chip">Day 13</span> Multiclass Metrics &amp; Imbalance</h3>
+  <div class="box green">
+    Run Day 10's binary toolkit once per class, each taking a turn as
+    "positive." Three ways to collapse per-class scores: Macro (plain
+    mean, exposes minority failure), Micro (pooled, always equals
+    accuracy), Weighted (mean by real class frequency). Proven with real
+    95/3/2 data: accuracy/micro/weighted all looked "fine" (~93–94%) while
+    Macro F1 collapsed to 0.4562, correctly screaming that one class was a
+    total failure. <code>class_weight='balanced'</code> fixes this by
+    reweighting the loss — same underlying idea as Day 7's Ridge penalty,
+    just retargeted at misclassification cost instead of large weights.
+  </div>
+
+  <h3><span class="day-chip">Day 14</span> kNN &amp; Gaussian Naive Bayes</h3>
+  <div class="box orange">
+    Two model families outside the regression lineage. kNN: compare to
+    the k closest points, majority vote, no training at all ("lazy
+    learner") — but its shared distance calculation means raw-scale
+    features dominate (same canyon problem as Day 6/9, new mechanism) and
+    majority-class points crowd out rare-class votes under imbalance.
+    Gaussian NB: Bayes' Theorem + an independence assumption that's
+    technically false but survives because classification only needs
+    correct <i>ranking</i>, not calibrated exact probabilities — and
+    because each feature's PDF is judged independently against its own
+    mean/std, GNB doesn't need scaling and doesn't get diluted by
+    imbalance the way kNN does. Head-to-head on the same 300/15/8 data:
+    kNN Macro F1=0.51 vs GNB Macro F1=0.85 — the exact mechanism (shared
+    space vs independent distributions) explained, not just observed.
+  </div>
+
+  <h2>The Golden Thread — How Every Day Chains Together</h2>
+  <div class="box">
+    <pre>Day 9  (sigmoid + BCE: yes/no probability)
+   → Day 10 (need to judge that probability honestly: confusion matrix)
+      → Day 11 (judge across EVERY threshold at once: ROC/AUC)
+         → Day 12 (generalize sigmoid to N classes: softmax)
+            → Day 13 (generalize Day 10's toolkit to N classes + imbalance)
+               → Day 14 (two new model families, judged with that SAME toolkit)</pre>
+    Every evaluation tool built early in the week became the instrument
+    used to judge everything built later — Day 10's metrics didn't just
+    apply to Day 9's model, they became the lens for Day 12's softmax
+    output (Day 13) and for two entirely different algorithm families
+    (Day 14). This is why the toolkit came before the new model families,
+    not after.
+  </div>
+
+  <h2>Live Review Session — Correction That Mattered</h2>
+  <div class="box">
+    Today's spot-check ran four cross-day questions instead of single-day
+    recall — three landed cleanly, one surfaced a precision gap worth
+    locking in.
+  </div>
+
+  <div class="bug">
+    <b>Correction — Metric gap vs. root cause are two different lookups.</b><br>
+    Said: a large Micro-vs-Macro F1 gap (e.g. 0.995 vs 0.61) implies you
+    already know <i>why</i> — specifically, that False Negatives dominate.<br>
+    Reality: the gap tells you a minority class is failing, and roughly
+    <i>how badly</i> — it does <b>not</b> tell you whether the failure is
+    FP-heavy or FN-heavy. That's a separate lookup, straight from Day 13's
+    own formulas: <code>fp = col_sum − tp</code>,
+    <code>fn = row_sum − tp</code>, read directly off the confusion matrix.
+  </div>
+  <div class="fix">
+    <b>Locked-in version:</b> Macro F1 vs Micro/Accuracy is a smoke
+    detector — it tells you something's on fire and roughly how big.
+    The confusion matrix is what tells you <i>where</i> the fire is.
+    Never let a metric's size imply a mechanism you haven't actually
+    verified against the raw matrix.
+  </div>
+
+  <h2>Scorecard</h2>
+  <div class="box">
+    <table>
+      <tr><th>Day</th><th>Topic</th><th>Confidence</th></tr>
+      <tr><td>9</td><td>Logistic Regression</td><td>Solid, one gap fixed today <span class="score-bar"><span class="score-fill" style="width:82%"></span></span></td></tr>
+      <tr><td>10</td><td>Classification Metrics</td><td>Strong <span class="score-bar"><span class="score-fill" style="width:90%"></span></span></td></tr>
+      <tr><td>11</td><td>ROC Curve &amp; AUC</td><td>Strong <span class="score-bar"><span class="score-fill" style="width:90%"></span></span></td></tr>
+      <tr><td>12</td><td>Softmax Regression</td><td>Solid <span class="score-bar"><span class="score-fill" style="width:84%"></span></span></td></tr>
+      <tr><td>13</td><td>Multiclass Metrics &amp; Imbalance</td><td>Strong <span class="score-bar"><span class="score-fill" style="width:90%"></span></span></td></tr>
+      <tr><td>14</td><td>kNN &amp; Gaussian Naive Bayes</td><td>Strong <span class="score-bar"><span class="score-fill" style="width:88%"></span></span></td></tr>
+    </table>
+    <br>
+    <b>Overall Week 2: Strong.</b> Every core mechanic (sigmoid/BCE,
+    confusion matrix, ROC/AUC, softmax/CCE, macro/micro/weighted, kNN,
+    Gaussian NB) was correctly recalled and, more importantly, correctly
+    connected across days unprompted. The one gap found today was a
+    precision gap between "correlation" and "verified cause" — the
+    intuition was directionally right, it just needed the confusion-matrix
+    step made explicit rather than assumed.
+  </div>
+
+  <h2>Knowledge Gaps — Consolidated</h2>
+  <div class="box orange">
+    <b>Carried from Week 1 (still open):</b>
+    <ul>
+      <li><b>Elastic Net</b> — named twice, never built by hand</li>
+      <li><b>Pseudo-inverse (<code>pinv</code>) internals</b> — used
+      correctly as a tool, mechanism not yet derived</li>
+    </ul>
+    <b>New from Week 2:</b>
+    <ul>
+      <li><b>L2-regularized Logistic Regression from scratch</b> (Day 9) —
+      sklearn's default behavior used and explained, not yet hand-built</li>
+      <li><b>Resampling — SMOTE / undersampling</b> (Day 13, now with a
+      concrete motivating case: kNN's imbalance weakness from Day 14)</li>
+      <li><b>Laplace smoothing from scratch</b> (Day 14) — fix named and
+      explained, not yet implemented</li>
+      <li><b>KD-trees / ball trees</b> (Day 14) — named as kNN's real
+      production speedup, not yet explored</li>
+    </ul>
+    Six open items total. None are foundational gaps — every one is
+    "named, understood conceptually, not yet hand-built." Worth a
+    dedicated catch-up day before the Week 8+ specialization decision.
+  </div>
+
+  <h2>Interview Readiness</h2>
+  <div class="box purple">
+    <b>Rating: Ready for junior/associate-level classification-fundamentals
+    questions, with a genuine strength in cross-topic synthesis.</b>
+    <ul>
+      <li>Can derive sigmoid/BCE, softmax/CCE, and their shared
+      gradient-cancellation mechanism from first principles, in plain
+      language, not just recite the formulas</li>
+      <li>Can reason about <i>when</i> a metric misleads and <i>why</i> —
+      demonstrated today by correctly identifying where Day 11's sorting
+      bug could resurface in code not yet written</li>
+      <li>One habit to tighten before interviews: don't let a metric's
+      <i>size</i> imply a <i>mechanism</i> you haven't verified — say "this
+      signals X, let me confirm via the confusion matrix" rather than
+      jumping straight to a confident causal story</li>
+    </ul>
+  </div>
+
+  <h2>Week 3 Roadmap</h2>
+  <div class="box green">
+    Week 2 completed the classification foundation: models (Logistic →
+    Softmax → kNN/Naive Bayes) plus the full evaluation toolkit needed to
+    judge any classifier honestly, under both balanced and imbalanced
+    conditions. Week 3 continues inside the shared foundation phase
+    (Weeks 1–7), before the Week 8+ specialization decision. Exact Day 15
+    topic and objectives will be confirmed at the start of that session,
+    following the same progress-tracking format.
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Week 2 Master Cheat Sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Sigmoid</td><td>1/(1+e^-z) — squashes to (0,1), never touches 0 or 1</td></tr>
+      <tr><td>Binary Cross-Entropy</td><td>-[y·log(p)+(1-y)·log(1-p)] — unbounded penalty, fixes SSE's flat gradient</td></tr>
+      <tr><td>Why gradients keep cancelling</td><td>log is exponential's exact inverse — BCE/CCE + sigmoid/softmax cancel to Xᵀ(pred−y) by design</td></tr>
+      <tr><td>Confusion Matrix</td><td>TP/FP/FN/TN — every prediction lands in exactly one box</td></tr>
+      <tr><td>Precision</td><td>TP/(TP+FP) — "when I say yes, am I right?"</td></tr>
+      <tr><td>Recall</td><td>TP/(TP+FN) — "did I catch every real yes?"</td></tr>
+      <tr><td>F1</td><td>harmonic mean of P&amp;R — can't be fooled by one high score hiding a low one</td></tr>
+      <tr><td>ROC curve</td><td>TPR vs FPR swept across every threshold</td></tr>
+      <tr><td>AUC</td><td>probability model ranks a random true positive above a random true negative</td></tr>
+      <tr><td>Sorting bug lesson</td><td>never sort paired data by a tie-prone column — sort by the unique one</td></tr>
+      <tr><td>Softmax</td><td>e^z_i / Σe^z_j — forces all classes to share one 100% pie</td></tr>
+      <tr><td>Softmax vs sigmoid</td><td>sigmoid = softmax's exact 2-class special case</td></tr>
+      <tr><td>Macro F1</td><td>plain mean per class — exposes minority-class failure</td></tr>
+      <tr><td>Micro F1</td><td>pooled TP/FP/FN — always equals accuracy in standard multiclass</td></tr>
+      <tr><td>Weighted F1</td><td>per-class mean weighted by real support/frequency</td></tr>
+      <tr><td>class_weight='balanced'</td><td>reweights the loss by inverse class frequency — Day 7's Ridge idea, reused</td></tr>
+      <tr><td>kNN</td><td>k closest points vote — lazy learner, no training, needs scaling, weak under imbalance</td></tr>
+      <tr><td>Gaussian Naive Bayes</td><td>Bayes' theorem + independence assumption — ranking survives even if calibration doesn't</td></tr>
+      <tr><td>Why GNB beats kNN on imbalance</td><td>independent per-feature PDFs vs one shared, majority-dominated distance space</td></tr>
+      <tr><td>Metric gap ≠ root cause</td><td>Macro-vs-Micro gap signals a problem's SIZE, not its FP/FN direction — check the confusion matrix</td></tr>
+      <tr><td>Golden thread</td><td>every evaluation tool built early became the lens for everything built later that week</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Week 2 Complete — 14/84 days, classification foundations locked in</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-02 / day-14-week2-review · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
