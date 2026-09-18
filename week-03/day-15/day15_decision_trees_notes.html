@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 15 Notes — Decision Trees</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #fdf6e3;
+    font-family: 'Kalam', cursive;
+    color: #2b2b2b;
+    margin: 0;
+    padding: 30px 20px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(#fdf6e3 0px, #fdf6e3 33px, #d8cba9 34px, #fdf6e3 35px);
+    border: 3px solid #7a5c3e;
+    border-radius: 4px;
+    padding: 40px 40px 40px 60px;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e08a8a;
+  }
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 44px;
+    color: #b3401f;
+    margin: 0 0 4px 0;
+    border-bottom: 3px dashed #b3401f;
+    padding-bottom: 8px;
+  }
+  .subtitle { font-size: 18px; color: #4a6b3a; margin-bottom: 25px; }
+  h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    color: #1f5fa5;
+    margin: 30px 0 8px 0;
+  }
+  h2::before { content: "✦ "; }
+  h3 {
+    font-family: 'Caveat', cursive;
+    font-size: 24px;
+    color: #97530c;
+    margin: 18px 0 6px 0;
+  }
+  .box {
+    border: 2.5px solid #444;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: #fffdf5;
+  }
+  .box.green   { border-color: #4a7d3a; background: #f2f9ec; }
+  .box.orange  { border-color: #c9711a; background: #fdf1e2; }
+  .box.purple  { border-color: #6b4fa0; background: #f4f0fb; }
+  .box.pink    { border-color: #c94f78; background: #fdf0f4; }
+  .label { font-family: 'Caveat', cursive; font-weight: 700; font-size: 22px; }
+  .label.green  { color: #2f5a22; }
+  .label.orange { color: #97530c; }
+  .label.purple { color: #4a3372; }
+  .label.pink   { color: #97325a; }
+  code, .code {
+    font-family: 'Kalam', monospace;
+    background: #eee5cf;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #7a2d0f;
+    font-weight: 700;
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0e6c8;
+    font-family: 'Kalam', monospace;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #7a5c3e;
+  }
+  .highlight { background: #fce27a; padding: 0 4px; border-radius: 3px; }
+  .underline { text-decoration: underline wavy #b3401f; }
+  ul, ol { margin: 6px 0; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .cheat-sheet {
+    margin-top: 30px;
+    border: 3px solid #7a5c3e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #fff9e8;
+  }
+  .cheat-sheet h2 { color: #b3401f; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  td, th { border: 1.5px dashed #a08a5e; padding: 8px 10px; text-align: left; font-size: 16px; }
+  th { color: #1f5fa5; font-family: 'Caveat', cursive; font-size: 19px; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-4deg);
+    border: 3px solid #b3401f;
+    color: #b3401f;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .footer-note { margin-top: 20px; font-size: 15px; color: #6a6a6a; font-style: italic; }
+  .bug {
+    border: 2px dashed #b3401f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #fff3ef;
+    font-size: 16px;
+  }
+  .fix {
+    border: 2px dashed #4a7d3a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0 16px 0;
+    background: #f2f9ec;
+    font-size: 16px;
+  }
+  .qa { border-left: 4px solid #6b4fa0; padding: 6px 14px; margin: 10px 0; background: #f8f6fd; }
+  .qa .q { font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; color: #4a3372; }
+  .tree-diagram {
+    text-align: center;
+    font-family: 'Kalam', monospace;
+    font-size: 15px;
+    background: #2b2b2b;
+    color: #f0e6c8;
+    padding: 16px;
+    border-radius: 8px;
+    border: 2px solid #7a5c3e;
+    white-space: pre;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Day 15 — Decision Trees</h1>
+  <div class="subtitle">Week 3 · Day 15 of 84 · AI Engineer Journey 2026</div>
+
+  <h2>The one-line idea</h2>
+  <div class="box">
+    Weeks 1–2 lived entirely in the regression family: weights, gradients,
+    probability curves. Today is a <span class="highlight">completely different
+    paradigm</span> — a tree that learns by asking a sequence of yes/no
+    questions on the raw feature values. No distance, no gradient descent,
+    no probability distribution. Just: split the data, again and again,
+    wherever it separates the classes best.
+  </div>
+
+  <h2>Gini Impurity — derived, not memorized</h2>
+  <div class="box green">
+    <span class="label green">The real question:</span> if you reach into a
+    group and pull out 2 random members (with replacement), what's the
+    probability their labels <b>don't match</b>?
+    <pre>Group: 2 Pass, 1 Fail (out of 3)  ->  p_pass=2/3, p_fail=1/3
+
+P(mismatch) = P(pass then fail) + P(fail then pass)
+            = (2/3 × 1/3) + (1/3 × 2/3) = 2/9 + 2/9 = 4/9 ≈ 0.4444</pre>
+    That IS Gini Impurity:
+    <pre>Gini = 1 - Σ p_i²
+     = 1 - ((2/3)² + (1/3)²) = 1 - (4/9 + 1/9) = 1 - 5/9 = 4/9 ✓</pre>
+    <b>Two derivations, same number</b> — pairwise-mismatch probability and
+    "1 minus sum of squared proportions" are algebraically identical.
+    <br><br>
+    <b>Range:</b> Gini=0 → perfectly pure (all one label). Gini=0.5 → worst
+    possible mixing for 2 classes (50/50).
+  </div>
+
+  <h2>Weighted Gini — combining two child groups fairly</h2>
+  <div class="box orange">
+    A split always makes TWO groups. Plain averaging their Gini scores would
+    let a tiny, noisy group count just as much as a huge, clean group — wrong.
+    <span class="highlight">Weight each side by its share of the total data:</span>
+    <pre>Gini_split = (n_left/n_total)×Gini_left + (n_right/n_total)×Gini_right
+
+Example: left(n=3, gini=0.4444), right(n=9, gini=0.1), total=12
+= (3/12)(0.4444) + (9/12)(0.1) = 0.1111 + 0.075 = 0.1861</pre>
+    <b>The algorithm's entire job:</b> compute this number for every
+    candidate split, pick the smallest (purest) one.
+  </div>
+
+  <h2>Worked example — Hours vs Attended</h2>
+  <div class="box purple">
+    6 students, Hours Studied + Attended(Y/N) → Pass/Fail.
+    <pre>Split "Hours > 5":     {A,C,E} all Pass | {B,D,F} all Fail
+                        Gini=0 + Gini=0 -> weighted Gini = 0.0  ← WINNER
+
+Split "Attended?":     {A,B,E}=2Pass/1Fail | {C,D,F}=1Pass/2Fail
+                        Gini=0.4444 + Gini=0.4444 -> weighted Gini = 0.4444</pre>
+    The tree doesn't "see" or "reason" — it just computes both numbers and
+    keeps the smaller one. <b>0.0 beats 0.4444</b>, so "Hours &gt; 5" wins,
+    exactly matching human intuition — but now provably, not just visually.
+  </div>
+
+  <h2>Entropy — the information-theory alternative</h2>
+  <div class="box pink">
+    <pre>Entropy = -Σ p_i log₂(p_i)</pre>
+    <b>Built from "bits":</b> a fair coin (2 equally likely outcomes) takes
+    exactly 1 yes/no question to resolve → log₂(2) = 1 bit. A rigged 99%-Heads
+    coin needs far fewer questions on average — <span class="highlight">rare
+    events carry more "surprise" (more bits), common events carry less.</span>
+    Entropy = average surprise across all outcomes, weighted by their own
+    probability.
+    <pre>Group: 2 Pass, 1 Fail   log₂(2/3)≈-0.585   log₂(1/3)≈-1.585
+
+Entropy = -[(2/3)(-0.585) + (1/3)(-1.585)] = -(-0.390-0.528) = 0.9183</pre>
+    <b>Same shape as Gini:</b> 0 at perfect purity, max at 50/50 (Entropy
+    maxes at 1.0, Gini maxes at 0.5 — different scales, same behavior).
+  </div>
+
+  <h2>Gini vs Entropy — why Gini is sklearn's default</h2>
+  <div class="box">
+    Not about accuracy — <b>almost always</b> pick the same splits. It's about
+    <span class="highlight">computational cost</span>: Gini needs only
+    <code>p²</code> (cheap multiply); Entropy needs <code>p·log₂(p)</code>
+    (expensive logarithm). A tree recomputes this at every candidate
+    threshold, every feature, every node — potentially millions of times on
+    real data. sklearn defaults to Gini purely for speed.
+  </div>
+
+  <h2>Choosing candidate thresholds — midpoints, not raw values</h2>
+  <div class="bug">
+    Testing every integer wastes work. <b>Only points where the split's
+    outcome can actually change</b> matter — and that's the
+    <u>midpoint between each pair of consecutive sorted unique values</u>,
+    not the values themselves.
+    <pre>sorted unique hours: [1, 2, 3, 7, 8, 9]
+midpoints (n-1 of them): [1.5, 2.5, 5.0, 7.5, 8.5]</pre>
+    Threshold below the min or above the max always dumps EVERYONE into one
+    side, leaving the other side empty — <code>gini([])</code> trivially
+    returns 0 but tells the algorithm nothing real. That's why the guard
+    <code>if len(labels)==0: return 0</code> exists — to survive that
+    edge case cleanly, not to reward it.
+  </div>
+
+  <h2>From-scratch build — the 4 core functions</h2>
+  <div class="box green">
+<pre>def gini(labels):
+    if len(labels) == 0:
+        return 0
+    _, counts = np.unique(labels, return_counts=True)
+    proportions = counts / len(labels)
+    return 1 - np.sum(proportions ** 2)
+
+def weighted_gini(left_labels, right_labels):
+    n_left, n_right = len(left_labels), len(right_labels)
+    n_total = n_left + n_right
+    return (n_left/n_total)*gini(left_labels) + (n_right/n_total)*gini(right_labels)
+
+def best_split_for_feature(feature_values, labels):
+    sorted_unique = np.sort(np.unique(feature_values))
+    best_gini, best_threshold = float('inf'), None
+    for i in range(len(sorted_unique) - 1):
+        threshold = (sorted_unique[i] + sorted_unique[i+1]) / 2
+        mask = feature_values > threshold
+        current_gini = weighted_gini(labels[mask], labels[~mask])
+        if current_gini < best_gini:
+            best_gini, best_threshold = current_gini, threshold
+    return best_threshold, best_gini
+
+def best_split_overall(X, y, feature_names):
+    best_feature, best_threshold, best_gini = None, None, float('inf')
+    for i in range(X.shape[1]):
+        threshold, gini_score = best_split_for_feature(X[:, i], y)
+        if gini_score < best_gini:
+            best_feature, best_threshold, best_gini = feature_names[i], threshold, gini_score
+    return best_feature, best_threshold, best_gini</pre>
+    <b>Verified on our data:</b> WINNER → feature='hours', threshold=5.0, gini=0.0000
+  </div>
+
+  <h2>Stopping conditions — trees overfit too, same lesson as Day 5/7</h2>
+  <div class="bug">
+    <b>1. Pure group (Gini≈0):</b> every threshold gives weighted_gini=0 —
+    no mixing left to reduce, so splitting further is wasted work that
+    accomplishes nothing.
+    <br><br>
+    <b>2. Too few samples:</b> 1 unique value in a feature → the threshold
+    loop runs ZERO times (<code>range(0)</code>) → silently returns
+    <code>threshold=None</code> instead of crashing. Must be explicitly
+    guarded, or downstream code breaks on <code>None</code>.
+    <br><br>
+    <b>3. max_depth:</b> a global, structural cap on how many levels deep
+    the tree can grow — independent of how much data is in any node.
+  </div>
+  <div class="fix">
+    <b>The overfitting connection (Day 5 callback):</b> a tree split all the
+    way to single-student leaves is just a giant memorized lookup table —
+    same disease as Linear Regression's SSE=0 trap (#rows=#unknowns → perfect
+    but meaningless fit). A brand-new student matching no exact leaf gets no
+    generalized rule. <code>min_samples_split</code>/<code>max_depth</code>
+    are trees' version of Ridge/Lasso's λ.
+  </div>
+
+  <h2>Recursive tree builder</h2>
+  <div class="box purple">
+<pre>def build_tree(X, y, feature_names, depth=0, max_depth=5, min_samples_split=2):
+    if gini(y) == 0:
+        return {'leaf': True, 'prediction': y[0]}
+    if len(y) < min_samples_split or depth >= max_depth:
+        values, counts = np.unique(y, return_counts=True)
+        return {'leaf': True, 'prediction': values[np.argmax(counts)]}
+
+    best_feature, best_threshold, _ = best_split_overall(X, y, feature_names)
+    if best_threshold is None:
+        values, counts = np.unique(y, return_counts=True)
+        return {'leaf': True, 'prediction': values[np.argmax(counts)]}
+
+    feature_index = feature_names.index(best_feature)
+    mask = X[:, feature_index] > best_threshold
+    left  = build_tree(X[mask],  y[mask],  feature_names, depth+1, max_depth, min_samples_split)
+    right = build_tree(X[~mask], y[~mask], feature_names, depth+1, max_depth, min_samples_split)
+    return {'leaf': False, 'feature': best_feature, 'threshold': best_threshold,
+            'left': left, 'right': right}</pre>
+    <b>Base case first, recurse only if needed</b> — the exact same shape as
+    every recursive algorithm. Stopping conditions return immediately;
+    otherwise the function does work and calls itself on smaller pieces.
+  </div>
+
+  <h2>Our tree, fully built</h2>
+  <div class="tree-diagram">          [hours &gt; 5.0 ?]
+              /            \
+           YES              NO
+            |                |
+      leaf: PASS (1)   leaf: FAIL (0)
+
+  {A,C,E}: all Pass  {B,D,F}: all Fail
+  both groups pure -> recursion stops immediately</div>
+
+  <h2>Prediction — walking the tree</h2>
+  <div class="box pink">
+<pre>def predict_one(tree, x, feature_names):
+    if tree['leaf']:
+        return tree['prediction']
+    feature_index = feature_names.index(tree['feature'])
+    if x[feature_index] > tree['threshold']:
+        return predict_one(tree['left'], x, feature_names)
+    else:
+        return predict_one(tree['right'], x, feature_names)</pre>
+    <b>Traced for a new student (hours=6, attended=1):</b>
+    <code>6 &gt; 5.0</code> → True → go left → leaf → return <b>1 (Pass)</b>.
+    Recursive walk down, mirroring the recursive build up.
+  </div>
+
+  <h2>Verified against sklearn — exact match</h2>
+  <div class="box green">
+<pre>sk_tree = DecisionTreeClassifier(criterion='gini', random_state=42).fit(X, y)
+
+Scratch prediction:  1        sklearn prediction:  1
+Scratch split:  hours, 5.0    sklearn split: feature=0(hours), threshold=5.0</pre>
+    Every number matches exactly — the from-scratch build runs the identical
+    algorithm sklearn's C-optimized implementation does internally.
+  </div>
+
+  <h2>Interview questions — plain-language answers</h2>
+  <div class="qa">
+    <div class="q">Q1. Why don't Decision Trees need feature scaling?</div>
+    Trees split using simple greater-than/less-than rules on one feature at
+    a time — rank-based, not distance- or gradient-based. Multiplying a
+    feature by 1000 never changes which side of a threshold a point falls
+    on, so the order (all a tree cares about) is preserved regardless of
+    scale. This is unlike kNN (raw-scale distance dominance) or Gradient
+    Descent-based models (canyon problem).
+  </div>
+  <div class="qa">
+    <div class="q">Q2. max_depth vs min_samples_split — same problem or different?</div>
+    Different, complementary angles on overfitting. <code>max_depth</code>
+    is a global structural cap — limits vertical size regardless of data
+    volume in any node. <code>min_samples_split</code> is a local,
+    data-driven cap — stops a specific node from splitting if it doesn't
+    hold enough samples to split reliably, regardless of depth. Often tuned
+    together.
+  </div>
+  <div class="qa">
+    <div class="q">Q3. What happens on an exact Gini tie between two features at the root?</div>
+    Implementation detail, not a principled choice — sklearn picks by
+    column/iteration order, first one checked wins ties. This matters because
+    the root split cascades into completely different subtrees below it —
+    a source of real model instability where small data changes (or even
+    just column order) can produce a structurally different tree at the
+    same accuracy. Motivates Random Forests (averaging many trees smooths
+    this out).
+  </div>
+
+  <div class="cheat-sheet">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th>Concept</th><th>Quick meaning</th></tr>
+      <tr><td>Gini Impurity</td><td>1-Σp_i² — probability 2 random picks from a group disagree</td></tr>
+      <tr><td>Gini range</td><td>0 (pure) to 0.5 (max mixing, 2-class 50/50)</td></tr>
+      <tr><td>Entropy</td><td>-Σp_i log₂(p_i) — average "surprise" in bits</td></tr>
+      <tr><td>Entropy range</td><td>0 (pure) to 1.0 (max mixing, 2-class 50/50)</td></tr>
+      <tr><td>Why Gini is sklearn default</td><td>p² (cheap) vs p·log(p) (expensive) — speed, not accuracy</td></tr>
+      <tr><td>Weighted Gini (split score)</td><td>(n_left/n)Gini_left + (n_right/n)Gini_right</td></tr>
+      <tr><td>Candidate thresholds</td><td>midpoints between consecutive sorted unique values only (n-1 of them)</td></tr>
+      <tr><td>Threshold beyond min/max</td><td>dumps everyone one-sided — useless, empty-group edge case</td></tr>
+      <tr><td>best_split_for_feature</td><td>loop every midpoint threshold, keep the lowest weighted Gini</td></tr>
+      <tr><td>best_split_overall</td><td>run best_split_for_feature per column, keep the lowest Gini feature</td></tr>
+      <tr><td>Stopping: Gini=0</td><td>pure group — no benefit to splitting further</td></tr>
+      <tr><td>Stopping: too few samples</td><td>1 unique value → threshold loop runs zero times → None, must guard</td></tr>
+      <tr><td>Stopping: max_depth</td><td>global cap on tree levels, independent of node data volume</td></tr>
+      <tr><td>Overfit-to-memorization link</td><td>fully-grown tree = per-row lookup table, same disease as Day 5's SSE=0 trap</td></tr>
+      <tr><td>build_tree recursion</td><td>base case (stop) checked first, else split + recurse on both children</td></tr>
+      <tr><td>predict_one recursion</td><td>walk left/right by threshold comparison until a leaf is hit</td></tr>
+      <tr><td>No scaling needed</td><td>rank-based splits, not distance/gradient — order survives any scale</td></tr>
+      <tr><td>Tied splits</td><td>implementation-order tiebreak — real source of tree instability, motivates Random Forests</td></tr>
+    </table>
+  </div>
+
+  <div class="stamp">✔ Day 15 complete</div>
+  <div class="footer-note">ai-engineer-journey-2026 · week-03 / day-15-decision-trees · Rahul's revision notes</div>
+
+</div>
+</body>
+</html>
